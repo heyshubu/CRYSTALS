@@ -23,6 +23,8 @@ import { useSession } from "@/frontend/use-session";
 
 import { useTheme } from "@/frontend/theme-context";
 import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/frontend/map-icons";
+import dynamic from "next/dynamic";
+const DashboardMap = dynamic(() => import("@/frontend/DashboardMap").then(m => ({ default: m.DashboardMap })), { ssr: false });
 import { UrgencyBadge, AvailabilityIndicator } from "@/frontend/UrgencyBadge";
 import type {
   Need,
@@ -283,6 +285,18 @@ export default function SuperadminPage() {
           </button>
         ))}
       </div>
+
+      {/* Dashboard Map — responder mode with exact locations */}
+      {!loading && (
+        <DashboardMap
+          needs={needs}
+          checkIns={[]}
+          shelters={shelters}
+          actions={unassignedNeeds.slice(0, 5).map((n) => (
+            { label: `✨ Assign (${n.category})`, onClick: () => { setActiveTab("needs"); }, variant: "primary" as const }
+          ))}
+        />
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12">
