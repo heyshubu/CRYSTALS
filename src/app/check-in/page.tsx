@@ -42,12 +42,13 @@ export default function CheckInPage() {
                   onClick={() => setStatus("help")}
                   className={`flex flex-col items-center justify-center py-6 px-4 rounded-xl border-2 transition-colors ${
                     status === "help"
-                      ? "bg-[#fced47] border-[#fced47] text-gray-900"
+                      ? "text-white border-[#CC79A7]"
                       : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                   }`}
+                  style={status === "help" ? { backgroundColor: '#CC79A7' } : {}}
                 >
-                  <Asterisk className="w-6 h-6 mb-2 text-gray-800" />
-                  <span className="font-bold text-lg text-gray-800">I Need Help</span>
+                  <Asterisk className="w-6 h-6 mb-2" />
+                  <span className="font-bold text-lg">I Need Help</span>
                 </button>
               </div>
             </div>
