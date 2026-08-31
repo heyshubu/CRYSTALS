@@ -37,9 +37,6 @@ export function Navbar() {
           I am safe
         </Link>
         <Link href="#" className="hover:text-[#0072B2] transition-colors pb-1">
-          Resources
-        </Link>
-        <Link href="#" className="hover:text-[#0072B2] transition-colors pb-1">
           Volunteer Hub
         </Link>
         <Link href="#" className="hover:text-[#0072B2] transition-colors pb-1">

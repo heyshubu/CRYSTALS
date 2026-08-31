@@ -4,18 +4,14 @@ import { useState, useEffect, useCallback } from "react";
 import {
   MapContainer,
   TileLayer,
-  CircleMarker,
+  Marker,
   Popup,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "@/lib/theme-context";
-import {
-  CATEGORY_CONFIG,
-  URGENCY_CONFIG,
-  getCategoryColor,
-  getUrgencyColor,
-} from "@/lib/map-icons";
+import { useFilters } from "@/lib/filter-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/lib/map-icons";
 import { PinDetailPopup } from "@/components/PinDetailPopup";
 import type {
   PublicCheckIn,
@@ -28,10 +24,69 @@ import { Wifi, WifiOff } from "lucide-react";
 const NEPAL_CENTER: [number, number] = [27.7172, 85.324];
 const DEFAULT_ZOOM = 7;
 
-// Different radii per category so pins are distinguishable by size/shape
-const CATEGORY_RADIUS: Record<string, number> = {
-  food: 8, water: 9, medical: 10, shelter: 11, transport: 7, safe: 8,
+// ── Custom DivIcon factories ─────────────────────────────────────
+
+function makeIcon(emoji: string, bg: string, size = 36, border = "white"): L.DivIcon {
+  return L.divIcon({
+    html: `<div style="
+      width:${size}px;height:${size}px;
+      background:${bg};
+      border:2.5px solid ${border};
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:${Math.round(size * 0.5)}px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.28);
+      cursor:pointer;
+    ">${emoji}</div>`,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2)],
+  });
+}
+
+function makeSquareIcon(emoji: string, bg: string, size = 32): L.DivIcon {
+  return L.divIcon({
+    html: `<div style="
+      width:${size}px;height:${size}px;
+      background:${bg};
+      border:2px solid white;
+      border-radius:6px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:${Math.round(size * 0.5)}px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.28);
+      cursor:pointer;
+    ">${emoji}</div>`,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2)],
+  });
+}
+
+// Category icon configs matching the picture
+const CATEGORY_ICONS: Record<string, { emoji: string; bg: string; shape: "circle" | "square" }> = {
+  food:      { emoji: "🍽️", bg: "#c57199", shape: "square" },
+  water:     { emoji: "💧", bg: "#0072B2", shape: "square" },
+  medical:   { emoji: "⛑️", bg: "#0072B2", shape: "circle" },
+  shelter:   { emoji: "🏠", bg: "#fced47", shape: "circle" },
+  transport: { emoji: "🚗", bg: "#6b7280", shape: "square" },
+  safe:      { emoji: "✅", bg: "#22c55e", shape: "circle" },
 };
+
+const URGENCY_BORDER: Record<string, string> = {
+  high:   "#ef4444",
+  medium: "#f97316",
+  low:    "white",
+};
+
+function getMarkerIcon(category: string, urgency?: string): L.DivIcon {
+  const cfg = CATEGORY_ICONS[category] ?? CATEGORY_ICONS.safe;
+  const border = urgency ? (URGENCY_BORDER[urgency] ?? "white") : "white";
+  return cfg.shape === "square"
+    ? makeSquareIcon(cfg.emoji, cfg.bg)
+    : makeIcon(cfg.emoji, cfg.bg, 36, border);
+}
 
 function MapEvents({ onIdle }: { onIdle: (c: [number, number], z: number) => void }) {
   const map = useMap();
@@ -45,16 +100,10 @@ function MapEvents({ onIdle }: { onIdle: (c: [number, number], z: number) => voi
 }
 
 export default function MapContent() {
-  const { theme } = useTheme();
+  const { urgency, resource } = useFilters();
   const [checkIns, setCheckIns] = useState<PublicCheckIn[]>([]);
   const [needs, setNeeds] = useState<PublicNeed[]>([]);
   const [shelters, setShelters] = useState<PublicShelter[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
-    () => new Set(["food", "water", "medical", "shelter", "transport", "safe"])
-  );
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
-    () => new Set(["open", "in_progress", "resolved", "safe", "need_help"])
-  );
   const [selectedPin, setSelectedPin] = useState<{
     type: "check_in" | "need" | "shelter";
     data: PublicCheckIn | PublicNeed | PublicShelter;
@@ -80,18 +129,18 @@ export default function MapContent() {
     return () => clearInterval(interval);
   }, []);
 
-  const toggleCategory = useCallback((cat: string) => {
-    setSelectedCategories((prev) => { const n = new Set(prev); if (n.has(cat)) n.delete(cat); else n.add(cat); return n; });
-  }, []);
-  const toggleStatus = useCallback((status: string) => {
-    setSelectedStatuses((prev) => { const n = new Set(prev); if (n.has(status)) n.delete(status); else n.add(status); return n; });
-  }, []);
+  // Apply filters from sidebar
+  const filteredNeeds = needs.filter((n) => {
+    const urgencyMatch = n.urgency === urgency;
+    const resourceMatch = resource === null || n.category === resource;
+    return urgencyMatch && resourceMatch;
+  });
 
-  const filteredCheckIns = checkIns.filter((c) => selectedCategories.has("safe") && selectedStatuses.has(c.status));
-  const filteredNeeds = needs.filter((n) => selectedCategories.has(n.category) && selectedStatuses.has(n.status));
+  const filteredShelters = resource === null || resource === "shelter" ? shelters : [];
+  const filteredCheckIns = checkIns;
 
   return (
-    <div className="relative h-[calc(100vh-4rem)]">
+    <div className="relative h-full w-full">
       <div className="absolute top-4 right-4 z-[1001]">
         {connected ? (
           <span className="flex items-center gap-1 text-xs text-green-600 bg-white/90 px-2 py-1 rounded-full shadow">
@@ -111,40 +160,43 @@ export default function MapContent() {
         />
         <MapEvents onIdle={() => {}} />
 
-        {/* Check-in markers — star shape via radius 8, safe color */}
+        {/* Check-in markers */}
         {filteredCheckIns.map((c) => (
-          <CircleMarker key={c.id} center={[c.approx_lat, c.approx_lng]} radius={8}
-            fillColor={getCategoryColor("safe", theme)} fillOpacity={0.8}
-            color="white" weight={2}
+          <Marker
+            key={c.id}
+            position={[c.approx_lat, c.approx_lng]}
+            icon={getMarkerIcon("safe")}
             eventHandlers={{ click: () => setSelectedPin({ type: "check_in", data: c }) }}
           >
             <Popup>✅ {c.name || "Anonymous"} — {c.status === "safe" ? "Safe" : "Needs Help"}</Popup>
-          </CircleMarker>
+          </Marker>
         ))}
 
-        {/* Need markers — different radius per category for shape distinction */}
+        {/* Need markers */}
         {filteredNeeds.map((n) => (
-          <CircleMarker key={n.id} center={[n.approx_lat, n.approx_lng]}
-            radius={CATEGORY_RADIUS[n.category] || 9}
-            fillColor={getCategoryColor(n.category as NeedCategory, theme)}
-            fillOpacity={0.8}
-            color={getUrgencyColor(n.urgency, theme)}
-            weight={3}
+          <Marker
+            key={n.id}
+            position={[n.approx_lat, n.approx_lng]}
+            icon={getMarkerIcon(n.category, n.urgency)}
             eventHandlers={{ click: () => setSelectedPin({ type: "need", data: n }) }}
           >
-            <Popup>{CATEGORY_CONFIG[n.category].emoji} {CATEGORY_CONFIG[n.category].label} — {URGENCY_CONFIG[n.urgency].icon} {n.urgency}<br />{n.description.slice(0, 60)}...</Popup>
-          </CircleMarker>
+            <Popup>
+              {CATEGORY_CONFIG[n.category].emoji} {CATEGORY_CONFIG[n.category].label} — {URGENCY_CONFIG[n.urgency].icon} {n.urgency}
+              <br />{n.description.slice(0, 60)}...
+            </Popup>
+          </Marker>
         ))}
 
-        {/* Shelter markers — largest radius, shelter color */}
-        {shelters.map((s) => (
-          <CircleMarker key={s.id} center={[s.exact_lat, s.exact_lng]} radius={12}
-            fillColor={getCategoryColor("shelter", theme)} fillOpacity={0.8}
-            color="white" weight={3}
+        {/* Shelter markers */}
+        {filteredShelters.map((s) => (
+          <Marker
+            key={s.id}
+            position={[s.exact_lat, s.exact_lng]}
+            icon={getMarkerIcon("shelter")}
             eventHandlers={{ click: () => setSelectedPin({ type: "shelter", data: s }) }}
           >
             <Popup>🏠 {s.name}<br />{s.current_occupancy}/{s.capacity}</Popup>
-          </CircleMarker>
+          </Marker>
         ))}
       </MapContainer>
 
