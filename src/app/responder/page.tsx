@@ -13,7 +13,7 @@ import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/lib/types
 const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 export default function ResponderPage() {
-  const { session, login, logout } = useSession();
+  const { session, mounted, login, logout } = useSession();
   const [code, setCode] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -105,6 +105,15 @@ export default function ResponderPage() {
     });
     if (res.ok) { setShelters((prev) => prev.map((s) => s.id === sid ? { ...s, current_occupancy: newOccupancy } : s)); setEditingShelter(null); }
   };
+
+  // Show consistent loading placeholder until localStorage is read (avoids hydration mismatch)
+  if (!mounted) {
+    return (
+      <div className="p-4 max-w-lg mx-auto flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   if (!session) {
     return (
