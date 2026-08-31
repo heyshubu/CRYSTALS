@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Image src="/Logo.jpeg" alt="Logo" fill className="object-contain" />
               </div>
               <span className="font-bold text-sm hidden sm:block" style={{ color: "var(--color-text)" }}>
-                {isSuperadmin ? "Coordinator" : isResponder ? "Responder" : "Disaster Relief Nepal"}
+                {isSuperadmin ? "Coordinator" : isResponder ? "Responder" : "Sanyukta"}
               </span>
             </Link>
 

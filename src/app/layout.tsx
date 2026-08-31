@@ -5,7 +5,7 @@ import { FontProvider } from "@/lib/font-context";
 import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
-  title: "Disaster Relief Nepal",
+  title: "Sanyukta — Disaster Relief Coordination",
   description: "Coordination platform for disaster response in Nepal",
 };
 

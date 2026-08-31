@@ -16,7 +16,7 @@ export function Footer() {
         </div>
 
         <div className="text-sm text-gray-600 md:text-right max-w-[250px]">
-          © 2024 Sanyukta Disaster Relief Nepal. All rights reserved.
+          © 2024 Sanyukta. All rights reserved.
         </div>
       </div>
     </footer>
