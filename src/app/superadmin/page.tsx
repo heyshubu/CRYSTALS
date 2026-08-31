@@ -35,7 +35,7 @@ const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 const SKILLS: NeedCategory[] = ["food", "water", "medical", "shelter", "transport"];
 
 export default function SuperadminPage() {
-  const { session, login, logout } = useSession();
+  const { session, mounted, login, logout } = useSession();
   const [code, setCode] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -193,6 +193,15 @@ export default function SuperadminPage() {
       setInventory((prev) => prev.filter((i) => i.id !== itemId));
     }
   };
+
+  // Show consistent loading placeholder until localStorage is read (avoids hydration mismatch)
+  if (!mounted) {
+    return (
+      <div className="p-4 max-w-lg mx-auto flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      </div>
+    );
+  }
 
   // ── Login screen ───────────────────────────────────────────
   if (!session || session.role !== "superadmin") {
