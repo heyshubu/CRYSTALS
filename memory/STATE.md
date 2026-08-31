@@ -2,13 +2,13 @@
 
 ## Current session
 - Date: 2026-08-31
-- Status: Steps 1–7 complete. Step 8 (nice-to-haves) available if time permits.
+- Status: COMPLETE — all built, tested, migrated, pushed to git.
 
 ## Active work
 - Building Disaster Relief Coordination App — Nepal
-- Stack: Next.js + Tailwind + Leaflet + Supabase + lucide-react
-- Status: All core features built. Step 8 (offline handling, language toggle) optional.
-- To deploy: set up Supabase project, run migration, update .env.local, deploy to Vercel.
+- Stack: Next.js + Tailwind + Leaflet + Supabase (Postgres) + lucide-react + pg driver
+- Database: Supabase Postgres via pooler at aws-0-ap-southeast-2.pooler.supabase.com
+- All features built and tested. DB migrated with seed data. Pushed to git.
 
 ## Recent decisions
 - Created full SQL migration: 6 tables, 3 public views, 20+ RLS policies, 2 functions
@@ -20,12 +20,9 @@
 - Demo seed data: 1 superadmin passcode, 2 responders, 1 shelter
 
 ## Known issues
-- Leaflet requires `react-leaflet` wrapper (not direct import) in Next.js — fixed.
-- AI suggestion uses placeholder keyword matching until real AI provider is connected.
-- Nepal districts list has minor duplication — functionally fine for dropdown.
-- Session management uses localStorage — not secure for production, fine for demo.
-- Realtime subscriptions need Supabase Realtime enabled in project settings.
-- Need to run migration against Supabase before deployment.
+- AI suggestion uses keyword placeholder until real AI provider is connected.
+- Map polling every 10s as fallback (Supabase Realtime requires API keys we don't have).
+- Session management uses localStorage — fine for demo, not production.
 
 ## Deep history index
 - Migration file → supabase/migrations/001_initial_schema.sql
