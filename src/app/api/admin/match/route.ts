@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/backend/db";
+import pool from "@/lib/db";
 
 /** POST /api/admin/match — suggest best responder for a need */
 export async function POST(req: NextRequest) {

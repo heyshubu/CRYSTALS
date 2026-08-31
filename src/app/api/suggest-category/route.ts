@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { NeedCategory, NeedUrgency } from "@/shared/types";
+import type { NeedCategory, NeedUrgency } from "@/lib/types";
 
 /**
  * POST /api/suggest-category

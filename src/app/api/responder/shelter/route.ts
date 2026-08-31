@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/backend/db";
+import pool from "@/lib/db";
 
 /** PATCH /api/responder/shelter */
 export async function PATCH(req: NextRequest) {

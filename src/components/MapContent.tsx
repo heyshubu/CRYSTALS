@@ -9,22 +9,20 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "@/frontend/theme-context";
+import { useTheme } from "@/lib/theme-context";
 import {
   CATEGORY_CONFIG,
   URGENCY_CONFIG,
   getCategoryColor,
   getUrgencyColor,
-} from "@/frontend/map-icons";
-import { FilterChips } from "@/frontend/FilterChips";
-import { MapLegend } from "@/frontend/MapLegend";
-import { PinDetailPopup } from "@/frontend/PinDetailPopup";
+} from "@/lib/map-icons";
+import { PinDetailPopup } from "@/components/PinDetailPopup";
 import type {
   PublicCheckIn,
   PublicNeed,
   PublicShelter,
   NeedCategory,
-} from "@/shared/types";
+} from "@/lib/types";
 import { Wifi, WifiOff } from "lucide-react";
 
 const NEPAL_CENTER: [number, number] = [27.7172, 85.324];
@@ -106,13 +104,6 @@ export default function MapContent() {
         )}
       </div>
 
-      <FilterChips
-        selectedCategories={selectedCategories}
-        onToggleCategory={toggleCategory}
-        selectedStatuses={selectedStatuses}
-        onToggleStatus={toggleStatus}
-      />
-
       <MapContainer center={NEPAL_CENTER} zoom={DEFAULT_ZOOM} className="h-full w-full" zoomControl={false}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -157,8 +148,6 @@ export default function MapContent() {
         ))}
       </MapContainer>
 
-      <MapLegend />
-
       {selectedPin && (
         <PinDetailPopup
           mode="public"
@@ -166,7 +155,7 @@ export default function MapContent() {
           name={"name" in selectedPin.data ? selectedPin.data.name : undefined}
           phone={"phone" in selectedPin.data ? (selectedPin.data as {phone?: string | null}).phone : undefined}
           category={"category" in selectedPin.data ? (selectedPin.data as {category?: NeedCategory}).category : undefined}
-          urgency={"urgency" in selectedPin.data ? (selectedPin.data as {urgency?: import("@/shared/types").NeedUrgency}).urgency : undefined}
+          urgency={"urgency" in selectedPin.data ? (selectedPin.data as {urgency?: import("@/lib/types").NeedUrgency}).urgency : undefined}
           status={"status" in selectedPin.data ? selectedPin.data.status : undefined}
           description={"description" in selectedPin.data ? (selectedPin.data as {description?: string}).description : undefined}
           approxLat={"approx_lat" in selectedPin.data ? selectedPin.data.approx_lat : undefined}

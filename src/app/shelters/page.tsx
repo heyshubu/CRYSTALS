@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Building2, Users, Loader2 } from "lucide-react";
-import { OccupancyBar } from "@/frontend/UrgencyBadge";
-import type { PublicShelter } from "@/shared/types";
+import { OccupancyBar } from "@/components/UrgencyBadge";
+import type { PublicShelter } from "@/lib/types";
 
 export default function SheltersPage() {
   const [shelters, setShelters] = useState<PublicShelter[]>([]);

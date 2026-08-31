@@ -9,9 +9,9 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/frontend/nepal-districts";
-import { useTheme } from "@/frontend/theme-context";
-import { getStatusColor } from "@/frontend/map-icons";
+import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/lib/nepal-districts";
+import { useTheme } from "@/lib/theme-context";
+import { getStatusColor } from "@/lib/map-icons";
 
 type Status = "safe" | "need_help";
 

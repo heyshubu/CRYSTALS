@@ -5,13 +5,13 @@ import {
   CheckCircle2, AlertTriangle, MapPin, Loader2, LogOut, Building2,
   Phone, ChevronDown, ChevronUp, Hand, CheckSquare,
 } from "lucide-react";
-import { useSession, type ResponderSession } from "@/frontend/use-session";
-import { useTheme } from "@/frontend/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/frontend/map-icons";
+import { useSession, type ResponderSession } from "@/lib/hooks/use-session";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
 import dynamic from "next/dynamic";
-const DashboardMap = dynamic(() => import("@/frontend/DashboardMap").then(m => ({ default: m.DashboardMap })), { ssr: false });
-import { UrgencyBadge, AvailabilityIndicator, OccupancyBar } from "@/frontend/UrgencyBadge";
-import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/shared/types";
+const DashboardMap = dynamic(() => import("@/components/DashboardMap").then(m => ({ default: m.DashboardMap })), { ssr: false });
+import { UrgencyBadge, AvailabilityIndicator, OccupancyBar } from "@/components/UrgencyBadge";
+import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/lib/types";
 
 const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
