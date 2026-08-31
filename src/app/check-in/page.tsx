@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FormLayout } from "@/components/layouts/FormLayout";
 import { CheckCircle2, Asterisk, Target, Send, Lock, MapPin, Loader2, AlertCircle } from "lucide-react";
+import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/lib/nepal-districts";
 
 export default function CheckInPage() {
   const [status, setStatus] = useState<"safe" | "help">("safe");
@@ -47,8 +48,17 @@ export default function CheckInPage() {
     e.preventDefault();
     setError(null);
 
-    if (!coords) {
-      setError("Please use GPS to capture your location.");
+    let lat: number, lng: number;
+    if (gpsStatus === "success" && coords) {
+      lat = coords.lat;
+      lng = coords.lng;
+    } else if (district) {
+      const d = DISTRICT_COORDS[district];
+      if (!d) { setError("District not found."); return; }
+      lat = d.lat;
+      lng = d.lng;
+    } else {
+      setError("Please use GPS to capture your location or select a district.");
       return;
     }
 
@@ -61,8 +71,8 @@ export default function CheckInPage() {
           name: name.trim() || undefined,
           phone: phone.trim() || undefined,
           status: status === "safe" ? "safe" : "need_help",
-          lat: coords.lat,
-          lng: coords.lng,
+          lat,
+          lng,
         }),
       });
       if (!res.ok) {
@@ -77,8 +87,8 @@ export default function CheckInPage() {
         name: name.trim() || null,
         phone: phone.trim() || null,
         status: status === "safe" ? "safe" : "need_help",
-        approx_lat: coords.lat,
-        approx_lng: coords.lng,
+        approx_lat: lat,
+        approx_lng: lng,
         created_at: new Date().toISOString(),
       });
       localStorage.setItem("local_checkins", JSON.stringify(localCheckins));
@@ -221,6 +231,7 @@ export default function CheckInPage() {
                 )}
               </button>
 
+              {/* GPS error message */}
               {gpsError && (
                 <p className="mt-2 text-sm text-red-600 flex items-start gap-1">
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> {gpsError}
@@ -240,17 +251,11 @@ export default function CheckInPage() {
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none"
                 >
                   <option value="">Select district...</option>
-                  <option value="kathmandu">Kathmandu</option>
-                  <option value="lalitpur">Lalitpur</option>
-                  <option value="bhaktapur">Bhaktapur</option>
-                  <option value="gorkha">Gorkha</option>
-                  <option value="sindhupalchok">Sindhupalchok</option>
-                  <option value="pokhara">Pokhara</option>
-                  <option value="chitwan">Chitwan</option>
-                  <option value="dhading">Dhading</option>
-                  <option value="nuwakot">Nuwakot</option>
+                  {UNIQUE_DISTRICTS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
                 </select>
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">&#9660;</div>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">▼</div>
               </div>
             </div>
 

@@ -110,6 +110,7 @@ function getCapacityTextColor(percent: number) {
 
 export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState("");
+
   const filtered = RESOURCES.filter((r) => {
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -311,7 +312,7 @@ export default function ResourcesPage() {
               No resources found matching your search.
             </p>
             <p className="text-sm text-gray-400 mt-1">
-              Try a different search term or category.
+              Try a different search term.
             </p>
           </div>
         )}
