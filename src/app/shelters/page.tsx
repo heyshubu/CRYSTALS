@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Building2, Users, Loader2 } from "lucide-react";
+import { OccupancyBar } from "@/components/UrgencyBadge";
 import type { PublicShelter } from "@/lib/types";
 
 export default function SheltersPage() {
@@ -42,10 +43,7 @@ export default function SheltersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {shelters.map((shelter) => {
-            const pct = shelter.capacity > 0 ? Math.round((shelter.current_occupancy / shelter.capacity) * 100) : 0;
-            const barColor = pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-orange-500" : "bg-green-500";
-            return (
+          {shelters.map((shelter) => (
               <div key={shelter.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -57,16 +55,9 @@ export default function SheltersPage() {
                     {shelter.current_occupancy}/{shelter.capacity}
                   </div>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${Math.min(pct, 100)}%` }} />
-                </div>
-                <div className="flex justify-between mt-1 text-xs text-gray-400">
-                  <span>{pct}% full</span>
-                  <span>{shelter.capacity - shelter.current_occupancy > 0 ? `${shelter.capacity - shelter.current_occupancy} spots left` : "Full"}</span>
-                </div>
+                <OccupancyBar current={shelter.current_occupancy} capacity={shelter.capacity} />
               </div>
-            );
-          })}
+          ))}
         </div>
       )}
     </div>

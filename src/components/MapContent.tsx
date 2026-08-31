@@ -9,9 +9,12 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { useTheme } from "@/lib/theme-context";
 import {
   CATEGORY_CONFIG,
   URGENCY_CONFIG,
+  getCategoryColor,
+  getUrgencyColor,
 } from "@/lib/map-icons";
 import { FilterChips } from "@/components/FilterChips";
 import { MapLegend } from "@/components/MapLegend";
@@ -27,6 +30,11 @@ import { Wifi, WifiOff } from "lucide-react";
 const NEPAL_CENTER: [number, number] = [27.7172, 85.324];
 const DEFAULT_ZOOM = 7;
 
+// Different radii per category so pins are distinguishable by size/shape
+const CATEGORY_RADIUS: Record<string, number> = {
+  food: 8, water: 9, medical: 10, shelter: 11, transport: 7, safe: 8,
+};
+
 function MapEvents({ onIdle }: { onIdle: (c: [number, number], z: number) => void }) {
   const map = useMap();
   useEffect(() => {
@@ -39,6 +47,7 @@ function MapEvents({ onIdle }: { onIdle: (c: [number, number], z: number) => voi
 }
 
 export default function MapContent() {
+  const { theme } = useTheme();
   const [checkIns, setCheckIns] = useState<PublicCheckIn[]>([]);
   const [needs, setNeeds] = useState<PublicNeed[]>([]);
   const [shelters, setShelters] = useState<PublicShelter[]>([]);
@@ -54,7 +63,6 @@ export default function MapContent() {
   } | null>(null);
   const [connected, setConnected] = useState(true);
 
-  // Fetch data
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -67,30 +75,18 @@ export default function MapContent() {
         if (Array.isArray(nRes)) setNeeds(nRes);
         if (Array.isArray(sRes)) setShelters(sRes);
         setConnected(true);
-      } catch {
-        setConnected(false);
-      }
+      } catch { setConnected(false); }
     };
     fetchAll();
-    // Poll every 10s as fallback for realtime (Supabase realtime requires API keys)
     const interval = setInterval(fetchAll, 10000);
     return () => clearInterval(interval);
   }, []);
 
   const toggleCategory = useCallback((cat: string) => {
-    setSelectedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat); else next.add(cat);
-      return next;
-    });
+    setSelectedCategories((prev) => { const n = new Set(prev); if (n.has(cat)) n.delete(cat); else n.add(cat); return n; });
   }, []);
-
   const toggleStatus = useCallback((status: string) => {
-    setSelectedStatuses((prev) => {
-      const next = new Set(prev);
-      if (next.has(status)) next.delete(status); else next.add(status);
-      return next;
-    });
+    setSelectedStatuses((prev) => { const n = new Set(prev); if (n.has(status)) n.delete(status); else n.add(status); return n; });
   }, []);
 
   const filteredCheckIns = checkIns.filter((c) => selectedCategories.has("safe") && selectedStatuses.has(c.status));
@@ -124,28 +120,36 @@ export default function MapContent() {
         />
         <MapEvents onIdle={() => {}} />
 
+        {/* Check-in markers — star shape via radius 8, safe color */}
         {filteredCheckIns.map((c) => (
           <CircleMarker key={c.id} center={[c.approx_lat, c.approx_lng]} radius={8}
-            fillColor={CATEGORY_CONFIG.safe.color} fillOpacity={0.8} color="white" weight={2}
+            fillColor={getCategoryColor("safe", theme)} fillOpacity={0.8}
+            color="white" weight={2}
             eventHandlers={{ click: () => setSelectedPin({ type: "check_in", data: c }) }}
           >
-            <Popup>{c.name || "Anonymous"} — {c.status === "safe" ? "✅ Safe" : "🆘 Help"}</Popup>
+            <Popup>✅ {c.name || "Anonymous"} — {c.status === "safe" ? "Safe" : "Needs Help"}</Popup>
           </CircleMarker>
         ))}
 
+        {/* Need markers — different radius per category for shape distinction */}
         {filteredNeeds.map((n) => (
-          <CircleMarker key={n.id} center={[n.approx_lat, n.approx_lng]} radius={10}
-            fillColor={CATEGORY_CONFIG[n.category].color} fillOpacity={0.8}
-            color={URGENCY_CONFIG[n.urgency].color} weight={3}
+          <CircleMarker key={n.id} center={[n.approx_lat, n.approx_lng]}
+            radius={CATEGORY_RADIUS[n.category] || 9}
+            fillColor={getCategoryColor(n.category as NeedCategory, theme)}
+            fillOpacity={0.8}
+            color={getUrgencyColor(n.urgency, theme)}
+            weight={3}
             eventHandlers={{ click: () => setSelectedPin({ type: "need", data: n }) }}
           >
-            <Popup>{CATEGORY_CONFIG[n.category].emoji} {n.category} — {n.urgency}<br />{n.description.slice(0, 60)}...</Popup>
+            <Popup>{CATEGORY_CONFIG[n.category].emoji} {CATEGORY_CONFIG[n.category].label} — {URGENCY_CONFIG[n.urgency].icon} {n.urgency}<br />{n.description.slice(0, 60)}...</Popup>
           </CircleMarker>
         ))}
 
+        {/* Shelter markers — largest radius, shelter color */}
         {shelters.map((s) => (
           <CircleMarker key={s.id} center={[s.exact_lat, s.exact_lng]} radius={12}
-            fillColor="#8b5cf6" fillOpacity={0.8} color="white" weight={3}
+            fillColor={getCategoryColor("shelter", theme)} fillOpacity={0.8}
+            color="white" weight={3}
             eventHandlers={{ click: () => setSelectedPin({ type: "shelter", data: s }) }}
           >
             <Popup>🏠 {s.name}<br />{s.current_occupancy}/{s.capacity}</Popup>

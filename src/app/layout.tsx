@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/theme-context";
 import { BottomNav } from "@/components/BottomNav";
 
 export const metadata: Metadata = {
@@ -15,11 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50 pb-20">
-        {/* Main content area — bottom padding reserves space for nav */}
-        <main>{children}</main>
-
-        {/* Bottom navigation — always visible on public pages */}
-        <BottomNav />
+        <ThemeProvider>
+          <main>{children}</main>
+          <BottomNav />
+        </ThemeProvider>
       </body>
     </html>
   );

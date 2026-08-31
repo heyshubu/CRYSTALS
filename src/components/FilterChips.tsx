@@ -1,6 +1,7 @@
 "use client";
 
-import { CATEGORY_CONFIG } from "@/lib/map-icons";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor } from "@/lib/map-icons";
 import type { NeedCategory } from "@/lib/types";
 
 interface FilterChipsProps {
@@ -11,11 +12,11 @@ interface FilterChipsProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: "open", label: "Open", color: "#ef4444" },
-  { value: "in_progress", label: "In Progress", color: "#f97316" },
-  { value: "resolved", label: "Resolved", color: "#22c55e" },
-  { value: "safe", label: "Safe", color: "#22c55e" },
-  { value: "need_help", label: "Needs Help", color: "#ef4444" },
+  { value: "open", label: "Open", icon: "○" },
+  { value: "in_progress", label: "In Progress", icon: "◑" },
+  { value: "resolved", label: "Resolved", icon: "●" },
+  { value: "safe", label: "Safe", icon: "✓" },
+  { value: "need_help", label: "Needs Help", icon: "!" },
 ];
 
 export function FilterChips({
@@ -24,31 +25,37 @@ export function FilterChips({
   selectedStatuses,
   onToggleStatus,
 }: FilterChipsProps) {
+  const { theme } = useTheme();
+
   return (
     <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2">
-      {/* Category chips */}
+      {/* Category chips — emoji + label for non-color identification */}
       <div className="flex flex-wrap gap-2">
-        {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
-          <button
-            key={key}
-            onClick={() => onToggleCategory(key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-              selectedCategories.has(key)
-                ? "text-white border-transparent"
-                : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-            }`}
-            style={
-              selectedCategories.has(key)
-                ? { backgroundColor: cfg.color, borderColor: cfg.color }
-                : undefined
-            }
-          >
-            {cfg.emoji} {cfg.label}
-          </button>
-        ))}
+        {(Object.keys(CATEGORY_CONFIG) as (NeedCategory | "safe")[]).map((key) => {
+          const cfg = CATEGORY_CONFIG[key];
+          const color = cfg.colors[theme];
+          return (
+            <button
+              key={key}
+              onClick={() => onToggleCategory(key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 transition ${
+                selectedCategories.has(key)
+                  ? "text-white border-transparent"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+              }`}
+              style={
+                selectedCategories.has(key)
+                  ? { backgroundColor: color, borderColor: color }
+                  : undefined
+              }
+            >
+              {cfg.emoji} {cfg.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Status chips */}
+      {/* Status chips — icon + label for non-color identification */}
       <div className="flex flex-wrap gap-2">
         {STATUS_OPTIONS.map((s) => (
           <button
@@ -61,11 +68,11 @@ export function FilterChips({
             }`}
             style={
               selectedStatuses.has(s.value)
-                ? { backgroundColor: s.color, borderColor: s.color }
+                ? { backgroundColor: getCategoryColor("safe", theme), borderColor: getCategoryColor("safe", theme) }
                 : undefined
             }
           >
-            {s.label}
+            {s.icon} {s.label}
           </button>
         ))}
       </div>
