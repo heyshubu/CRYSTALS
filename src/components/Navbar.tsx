@@ -36,11 +36,11 @@ export function Navbar() {
         >
           I am safe
         </Link>
-        <Link href="#" className="hover:text-[#0072B2] transition-colors pb-1">
-          Volunteer Hub
-        </Link>
-        <Link href="#" className="hover:text-[#0072B2] transition-colors pb-1">
-          Emergency Contacts
+        <Link 
+          href="/login" 
+          className={`${pathname === '/login' ? 'text-[#0072B2] border-b-2 border-[#0072B2]' : 'hover:text-[#0072B2]'} transition-colors pb-1`}
+        >
+          Responder Login
         </Link>
       </div>
 

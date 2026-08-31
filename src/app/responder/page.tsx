@@ -28,7 +28,7 @@ export default function ResponderPage() {
   const [shelters, setShelters] = useState<PublicShelter[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [availability, setAvailability] = useState(responder?.availability || "available");
+  const [availability, setAvailability] = useState("available");
   const [showMap, setShowMap] = useState(false);
 
   // Shelter occupancy editing state
@@ -57,29 +57,32 @@ export default function ResponderPage() {
     if (result.error) setLoginError(result.error);
   };
 
-  const fetchData = async () => {
-    if (!responder) return;
+  const fetchData = async (resp: { id: string }) => {
     try {
       const [needsRes, taskRes, sheltersRes] = await Promise.all([
         fetch("/api/data/needs?full=true").then((r) => r.json()),
-        fetch(`/api/responder/task?responderId=${responder.id}`).then((r) => r.json()),
+        fetch(`/api/responder/task?responderId=${resp.id}`).then((r) => r.json()),
         fetch("/api/data/shelters").then((r) => r.json()),
       ]);
       if (Array.isArray(needsRes)) {
         setNeeds(needsRes.sort((a: Need, b: Need) => (URGENCY_ORDER[a.urgency] ?? 2) - (URGENCY_ORDER[b.urgency] ?? 2)));
       }
-      if (taskRes.task) setAssignedTask(taskRes.task); else setAssignedTask(null);
+      if (taskRes && taskRes.task) setAssignedTask(taskRes.task); else setAssignedTask(null);
       if (Array.isArray(sheltersRes)) setShelters(sheltersRes);
     } catch { /* ignore */ }
     setLoading(false);
   };
 
+  // Fetch data when session is confirmed and mounted
   useEffect(() => {
-    if (!responder) return;
-    fetchData();
-    const interval = setInterval(fetchData, 10000);
+    if (!mounted || !session || session.role !== "responder") return;
+    const resp = (session as ResponderSession).responder;
+    if (!resp) return;
+    setAvailability(resp.availability || "available");
+    fetchData(resp);
+    const interval = setInterval(() => fetchData(resp), 10000);
     return () => clearInterval(interval);
-  }, [responder]);
+  }, [mounted, session]);
 
   const markComplete = async (needId: string) => {
     setActionLoading(needId);
@@ -92,7 +95,7 @@ export default function ResponderPage() {
     if (!responder) return;
     setActionLoading(needId);
     const res = await fetch("/api/responder/pickup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ needId, responderId: responder.id }) });
-    if (res.ok) fetchData();
+    if (res.ok && responder) fetchData(responder);
     else { const d = await res.json(); alert(d.error || "Failed."); }
     setActionLoading(null);
   };
@@ -121,13 +124,20 @@ export default function ResponderPage() {
     setSavingShelters(false);
   };
 
+  // Safety timeout: force loading false after 5s so user never sees infinite spinner
+  useEffect(() => {
+    if (!mounted || !session || session.role !== "responder") return;
+    const timeout = setTimeout(() => setLoading(false), 5000);
+    return () => clearTimeout(timeout);
+  }, [mounted, session]);
+
   // ── Loading state ──────────────────────────────────────────
   if (!mounted) {
     return (<div className="p-4 max-w-lg mx-auto flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>);
   }
 
-  // ── Login screen ───────────────────────────────────────────
-  if (!session) {
+  // ── Login screen (also catches superadmin sessions on wrong page) ───
+  if (!session || session.role !== "responder") {
     return (
       <div className="p-4 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4"><CheckSquare className="w-6 h-6 text-blue-600" /></div>
