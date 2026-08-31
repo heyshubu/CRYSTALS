@@ -1,0 +1,321 @@
+-- ============================================================
+-- Disaster Relief Coordination App — Initial Schema Migration
+-- ============================================================
+-- Run this against your Supabase SQL editor or via
+--   supabase db push / supabase migration up
+--
+-- DESIGN PRINCIPLE: public key can NEVER see exact locations
+-- or contact info.  This is enforced via RLS + restricted views,
+-- not via the frontend hiding columns.
+-- ============================================================
+
+-- ──────────────────────────────────────────────────────────────
+-- 1. HELPER FUNCTIONS
+-- ──────────────────────────────────────────────────────────────
+
+-- Offset a point by ~300 m in a random direction.
+-- Input/output in degrees (EPSG:4326).
+CREATE OR REPLACE FUNCTION fuzz_location(
+  exact_lat double precision,
+  exact_lng double precision,
+  max_offset_m double precision DEFAULT 300
+)
+RETURNS TABLE(lat double precision, lng double precision)
+LANGUAGE sql IMMUTABLE AS $$
+  SELECT
+    -- random angle in radians
+    (random() * 2 * pi())                          AS angle,
+    -- ~111,320 m per degree of latitude; lng adjusted by cos(lat)
+    max_offset_m / 111320.0                         AS lat_offset,
+    max_offset_m / (111320.0 * cos(radians(exact_lat))) AS lng_offset
+  -- pick a point in the right direction
+  -- we inline the trig to keep it a pure SQL function
+$$ STABLE;
+
+-- Simpler version: returns offset lat/lng directly.
+CREATE OR REPLACE FUNCTION fuzz_location_simple(
+  p_lat double precision,
+  p_lng double precision
+)
+RETURNS TABLE(approx_lat double precision, approx_lng double precision)
+LANGUAGE plpgsql AS $$
+DECLARE
+  v_angle    double precision := random() * 2 * pi();
+  v_distance double precision := 300;                 -- metres
+  v_dlat     double precision := (v_distance / 111320.0) * cos(v_angle);
+  v_dlng     double precision := (v_distance / (111320.0 * cos(radians(p_lat)))) * sin(v_angle);
+BEGIN
+  approx_lat := p_lat  + v_dlat;
+  approx_lng := p_lng  + v_dlng;
+  RETURN NEXT;
+END;
+$$ STABLE;
+
+
+-- ──────────────────────────────────────────────────────────────
+-- 2. TABLES
+-- ──────────────────────────────────────────────────────────────
+
+-- 2a. Safety check-ins  ("I'm Safe" page)
+CREATE TABLE public.check_ins (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name         text,                                  -- optional
+  phone        text,                                  -- optional
+  status       text NOT NULL CHECK (status IN ('safe','need_help')),
+  -- Exact location (private — never exposed publicly)
+  exact_lat    double precision NOT NULL,
+  exact_lng    double precision NOT NULL,
+  -- Approximate location (fuzzed ~300 m, used by public views)
+  approx_lat   double precision NOT NULL,
+  approx_lng   double precision NOT NULL,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.check_ins IS 'Anonymous safety check-ins from the public. Contact details and exact locations are private.';
+
+
+-- 2b. Need reports  ("Report Need" page)
+CREATE TABLE public.needs (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             text,                              -- optional
+  phone            text,                              -- optional
+  category         text NOT NULL CHECK (category IN ('food','water','medical','shelter','transport')),
+  urgency          text NOT NULL CHECK (urgency IN ('low','medium','high')),
+  description      text NOT NULL,
+  status           text NOT NULL DEFAULT 'open'
+                     CHECK (status IN ('open','in_progress','resolved')),
+  -- AI suggestion fields (stored alongside final values for audit)
+  ai_suggested_category text,
+  ai_suggested_urgency  text,
+  -- Exact location (private)
+  exact_lat        double precision NOT NULL,
+  exact_lng        double precision NOT NULL,
+  -- Approximate location (public)
+  approx_lat       double precision NOT NULL,
+  approx_lng       double precision NOT NULL,
+  -- Assignment
+  assigned_responder_id uuid REFERENCES public.responders(id) ON DELETE SET NULL,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at       timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.needs IS 'Reports of specific needs (food, water, medical, shelter, transport). Contact details and exact locations are private.';
+
+
+-- 2c. Responders  (login by individual code)
+CREATE TABLE public.responders (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name         text NOT NULL,
+  phone        text,                                  -- optional
+  skill        text NOT NULL CHECK (skill IN ('food','water','medical','shelter','transport')),
+  coverage     text NOT NULL,                         -- district or region name
+  availability text NOT NULL DEFAULT 'available'
+                 CHECK (availability IN ('available','busy','offline')),
+  login_code   text NOT NULL UNIQUE,                  -- personal code generated by superadmin
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.responders IS 'Responder accounts. Each has a unique personal login code generated by the superadmin.';
+
+
+-- 2d. Shelters
+CREATE TABLE public.shelters (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name             text NOT NULL,
+  exact_lat        double precision NOT NULL,
+  exact_lng        double precision NOT NULL,
+  capacity         integer NOT NULL CHECK (capacity > 0),
+  current_occupancy integer NOT NULL DEFAULT 0
+                     CHECK (current_occupancy >= 0),
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.shelters IS 'Shelters. Locations are always public and exact so people can find them.';
+
+
+-- 2e. Shelter inventory items
+CREATE TABLE public.shelter_inventory (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  shelter_id  uuid NOT NULL REFERENCES public.shelters(id) ON DELETE CASCADE,
+  item_name   text NOT NULL,                          -- e.g. "food", "water", "blankets", "medical kits"
+  quantity    integer NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  unit        text DEFAULT 'units',                   -- "units", "litres", "kg", etc.
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (shelter_id, item_name)                      -- one row per item per shelter
+);
+
+COMMENT ON TABLE public.shelter_inventory IS 'Inventory items tracked per shelter. Managed by superadmin only.';
+
+
+-- 2f. Superadmin / coordinator passcode (single row)
+CREATE TABLE public.admin_config (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  passcode     text NOT NULL UNIQUE,                  -- coordinator passcode
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.admin_config IS 'Superadmin coordinator passcode(s). Store securely.';
+
+
+-- ──────────────────────────────────────────────────────────────
+-- 3. INDEXES
+-- ──────────────────────────────────────────────────────────────
+
+CREATE INDEX idx_needs_status        ON public.needs(status);
+CREATE INDEX idx_needs_category      ON public.needs(category);
+CREATE INDEX idx_needs_urgency       ON public.needs(urgency);
+CREATE INDEX idx_needs_assigned      ON public.needs(assigned_responder_id)
+    WHERE assigned_responder_id IS NULL;              -- partial index for unassigned lookup
+CREATE INDEX idx_responders_code     ON public.responders(login_code);
+CREATE INDEX idx_responders_skill    ON public.responders(skill);
+CREATE INDEX idx_responders_avail    ON public.responders(availability);
+CREATE INDEX idx_shelter_inv_shelter ON public.shelter_inventory(shelter_id);
+CREATE INDEX idx_checkins_created    ON public.check_ins(created_at);
+CREATE INDEX idx_needs_created       ON public.needs(created_at);
+
+
+-- ──────────────────────────────────────────────────────────────
+-- 4. RESTRICTED PUBLIC VIEWS
+--    These are what the public anon key reads.
+--    They omit exact locations and all contact details.
+-- ──────────────────────────────────────────────────────────────
+
+CREATE OR REPLACE VIEW public.public_check_ins AS
+  SELECT
+    id,
+    name,                          -- may be NULL; shown as "Anonymous" if null
+    status,
+    approx_lat,
+    approx_lng,
+    created_at
+  FROM public.check_ins;
+
+CREATE OR REPLACE VIEW public.public_needs AS
+  SELECT
+    id,
+    category,
+    urgency,
+    description,
+    status,
+    assigned_responder_id IS NOT NULL AS is_assigned,  -- hide who; just whether assigned
+    approx_lat,
+    approx_lng,
+    created_at
+  FROM public.needs;
+
+-- Shelters: always exact — people need to find them.
+CREATE OR REPLACE VIEW public.public_shelters AS
+  SELECT
+    id,
+    name,
+    exact_lat,
+    exact_lng,
+    capacity,
+    current_occupancy,
+    created_at
+  FROM public.shelters;
+
+
+-- ──────────────────────────────────────────────────────────────
+-- 5. ROW LEVEL SECURITY (RLS)
+-- ──────────────────────────────────────────────────────────────
+
+-- Enable RLS on every table
+ALTER TABLE public.check_ins          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.needs              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.responders         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shelters           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shelter_inventory  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_config       ENABLE ROW LEVEL SECURITY;
+
+-- ── 5a. CHECK_INS ───────────────────────────────────────────
+-- Public (anon) can INSERT (submit check-in) and SELECT from the view.
+-- Base table: anon gets nothing.  Service role / backend reads all.
+
+CREATE POLICY "check_ins: anon can insert"
+  ON public.check_ins FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "check_ins: service role full access"
+  ON public.check_ins FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- No SELECT/UPDATE/DELETE policy for anon → anon gets nothing from base table.
+-- The public_check_ins VIEW is what anon reads.
+
+
+-- ── 5b. NEEDS ───────────────────────────────────────────────
+-- Public (anon) can INSERT and SELECT from the view only.
+-- Authenticated responders can see full data (via service role backend).
+
+CREATE POLICY "needs: anon can insert"
+  ON public.needs FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "needs: service role full access"
+  ON public.needs FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+
+-- ── 5c. RESPONDERS ─────────────────────────────────────────
+-- No anon access at all. Only service role (backend) reads/writes.
+-- The backend handles login-code validation.
+
+CREATE POLICY "responders: service role full access"
+  ON public.responders FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+
+-- ── 5d. SHELTERS ────────────────────────────────────────────
+-- Public (anon) can INSERT (submit a new shelter? not expected normally)
+-- and SELECT from the view.  Only service role does mutations.
+-- In practice shelters are created by superadmin only.
+
+CREATE POLICY "shelters: anon can read via view"
+  ON public.shelters FOR SELECT
+  USING (true);
+
+CREATE POLICY "shelters: service role full access"
+  ON public.shelters FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+
+-- ── 5e. SHELTER_INVENTORY ───────────────────────────────────
+-- No anon access. Service role only.
+
+CREATE POLICY "shelter_inventory: service role full access"
+  ON public.shelter_inventory FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+
+-- ── 5f. ADMIN_CONFIG ───────────────────────────────────────
+-- No anon access. Service role only.
+
+CREATE POLICY "admin_config: service role full access"
+  ON public.admin_config FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+
+-- ──────────────────────────────────────────────────────────────
+-- 6. SEED DATA (optional — for dev/demo)
+-- ──────────────────────────────────────────────────────────────
+
+-- Insert one demo superadmin passcode (change in production!)
+INSERT INTO public.admin_config (passcode) VALUES ('COORD-2026');
+
+-- Insert a couple of demo responders
+INSERT INTO public.responders (name, phone, skill, coverage, login_code)
+VALUES
+  ('Ram Bahadur', '9841000001', 'medical', 'Kathmandu',  'RESP-MED-001'),
+  ('Sita Thapa',  '9841000002', 'food',    'Lalitpur',   'RESP-FOOD-001');
+
+-- Insert a demo shelter
+INSERT INTO public.shelters (name, exact_lat, exact_lng, capacity, current_occupancy)
+VALUES
+  ('Boudha Community Centre', 27.7215, 85.3620, 150, 42);

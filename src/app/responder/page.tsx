@@ -1,0 +1,272 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  CheckCircle2, AlertTriangle, MapPin, Loader2, LogOut, Building2,
+  Phone, ChevronDown, ChevronUp, Hand, CheckSquare,
+} from "lucide-react";
+import { useSession, type ResponderSession } from "@/lib/hooks/use-session";
+import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/lib/map-icons";
+import { PinDetailPopup } from "@/components/PinDetailPopup";
+import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/lib/types";
+
+const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
+
+export default function ResponderPage() {
+  const { session, login, logout } = useSession();
+  const [code, setCode] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const responder = (session as ResponderSession)?.responder;
+
+  const [needs, setNeeds] = useState<Need[]>([]);
+  const [assignedTask, setAssignedTask] = useState<Need | null>(null);
+  const [shelters, setShelters] = useState<PublicShelter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPin, setSelectedPin] = useState<{ need: Need } | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [availability, setAvailability] = useState(responder?.availability || "available");
+  const [showShelters, setShowShelters] = useState(false);
+  const [editingShelter, setEditingShelter] = useState<string | null>(null);
+  const [newOccupancy, setNewOccupancy] = useState(0);
+
+  const handleLogin = async () => {
+    if (!code.trim()) return;
+    setLoggingIn(true);
+    setLoginError("");
+    const result = await login(code.trim());
+    setLoggingIn(false);
+    if (result.error) setLoginError(result.error);
+  };
+
+  const fetchData = async () => {
+    if (!responder) return;
+    try {
+      const [needsRes, taskRes, sheltersRes] = await Promise.all([
+        fetch("/api/data/needs?full=true").then((r) => r.json()),
+        fetch(`/api/responder/task?responderId=${responder.id}`).then((r) => r.json()),
+        fetch("/api/data/shelters").then((r) => r.json()),
+      ]);
+      if (Array.isArray(needsRes)) {
+        setNeeds(needsRes.sort((a: Need, b: Need) => (URGENCY_ORDER[a.urgency] ?? 2) - (URGENCY_ORDER[b.urgency] ?? 2)));
+      }
+      if (taskRes.task) setAssignedTask(taskRes.task);
+      if (Array.isArray(sheltersRes)) setShelters(sheltersRes);
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!responder) return;
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, [responder]);
+
+  const markComplete = async (needId: string) => {
+    setActionLoading(needId);
+    const res = await fetch("/api/responder/task", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ needId }),
+    });
+    if (res.ok) { setAssignedTask(null); setNeeds((prev) => prev.filter((n) => n.id !== needId)); }
+    setActionLoading(null);
+  };
+
+  const pickUpNeed = async (needId: string) => {
+    if (!responder) return;
+    setActionLoading(needId);
+    const res = await fetch("/api/responder/pickup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ needId, responderId: responder.id }),
+    });
+    if (res.ok) fetchData();
+    else { const d = await res.json(); alert(d.error || "Failed."); }
+    setActionLoading(null);
+  };
+
+  const toggleAvailability = async (a: string) => {
+    if (!responder) return;
+    const res = await fetch("/api/responder/availability", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ responderId: responder.id, availability: a }),
+    });
+    if (res.ok) setAvailability(a);
+  };
+
+  const updateShelterOccupancy = async (sid: string) => {
+    const res = await fetch("/api/responder/shelter", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shelterId: sid, current_occupancy: newOccupancy }),
+    });
+    if (res.ok) { setShelters((prev) => prev.map((s) => s.id === sid ? { ...s, current_occupancy: newOccupancy } : s)); setEditingShelter(null); }
+  };
+
+  if (!session) {
+    return (
+      <div className="p-4 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4"><CheckSquare className="w-6 h-6 text-blue-600" /></div>
+        <h1 className="text-xl font-bold mb-2">Responder Login</h1>
+        <p className="text-gray-500 text-sm mb-6">Enter your personal access code.</p>
+        <input type="text" value={code} onChange={(e) => { setCode(e.target.value); setLoginError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+          placeholder="Your access code" className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 text-center text-lg tracking-widest" />
+        {loginError && <p className="text-red-500 text-sm mb-4">{loginError}</p>}
+        <button onClick={handleLogin} disabled={loggingIn}
+          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
+          {loggingIn ? <Loader2 className="inline w-5 h-5 animate-spin" /> : "Enter"}
+        </button>
+      </div>
+    );
+  }
+
+  const unassignedNeeds = needs.filter((n) => !n.is_assigned && n.status === "open");
+
+  return (
+    <div className="p-4 max-w-lg mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-xl font-bold">Welcome, {responder?.name}</h1>
+          <p className="text-xs text-gray-400">{responder?.skill} · {responder?.coverage}</p>
+        </div>
+        <button onClick={logout} className="p-2 text-gray-400 hover:text-gray-600"><LogOut className="w-5 h-5" /></button>
+      </div>
+
+      <div className="flex gap-2 mb-6">
+        {["available", "busy", "offline"].map((a) => (
+          <button key={a} onClick={() => toggleAvailability(a)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition capitalize ${
+              availability === a
+                ? a === "available" ? "border-green-500 bg-green-50 text-green-700" : a === "busy" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-gray-500 bg-gray-50 text-gray-700"
+                : "border-gray-200 text-gray-500"
+            }`}>{a}</button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>
+      ) : (
+        <>
+          {assignedTask && (
+            <div className="mb-6">
+              <h2 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><CheckSquare className="w-5 h-5 text-blue-600" />My Assigned Task</h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{CATEGORY_CONFIG[assignedTask.category as NeedCategory]?.emoji}</span>
+                  <span className="font-semibold capitalize">{assignedTask.category}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: URGENCY_CONFIG[assignedTask.urgency as NeedUrgency]?.color + "20", color: URGENCY_CONFIG[assignedTask.urgency as NeedUrgency]?.color }}>{assignedTask.urgency}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">{assignedTask.description}</p>
+                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{assignedTask.exact_lat?.toFixed(4)}, {assignedTask.exact_lng?.toFixed(4)}</span>
+                  {assignedTask.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{assignedTask.phone}</span>}
+                </div>
+                <button onClick={() => markComplete(assignedTask.id)} disabled={actionLoading === assignedTask.id}
+                  className="w-full py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                  {actionLoading === assignedTask.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  Mark Complete
+                </button>
+              </div>
+            </div>
+          )}
+
+          {unassignedNeeds.length > 0 && (
+            <div className="mb-6">
+              <h2 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><Hand className="w-5 h-5 text-orange-600" />Available to Pick Up ({unassignedNeeds.length})</h2>
+              <div className="space-y-3">
+                {unassignedNeeds.map((need) => (
+                  <div key={need.id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span>{CATEGORY_CONFIG[need.category as NeedCategory]?.emoji}</span>
+                      <span className="font-medium capitalize text-sm">{need.category}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color + "20", color: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color }}>{need.urgency}</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">{need.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400 flex items-center gap-1"><MapPin className="w-3 h-3" />{need.exact_lat?.toFixed(3)}, {need.exact_lng?.toFixed(3)}</span>
+                      <button onClick={() => pickUpNeed(need.id)} disabled={actionLoading === need.id || !!assignedTask}
+                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1">
+                        {actionLoading === need.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Hand className="w-3 h-3" />}Pick Up
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h2 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-gray-600" />All Needs ({needs.length})</h2>
+            <div className="space-y-2">
+              {needs.map((need) => (
+                <div key={need.id} onClick={() => setSelectedPin({ need })}
+                  className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition">
+                  <span className="text-lg">{CATEGORY_CONFIG[need.category as NeedCategory]?.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm capitalize">{need.category}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color + "20", color: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color }}>{need.urgency}</span>
+                      {need.is_assigned && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">Assigned</span>}
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">{need.description}</p>
+                  </div>
+                  <MapPin className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <button onClick={() => setShowShelters(!showShelters)} className="flex items-center gap-2 font-semibold text-gray-800 mb-2 w-full">
+              <Building2 className="w-5 h-5 text-purple-600" />Shelter Occupancy
+              {showShelters ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
+            </button>
+            {showShelters && (
+              <div className="space-y-3">
+                {shelters.map((shelter) => {
+                  const pct = shelter.capacity > 0 ? Math.round((shelter.current_occupancy / shelter.capacity) * 100) : 0;
+                  const editing = editingShelter === shelter.id;
+                  return (
+                    <div key={shelter.id} className="bg-white border border-gray-200 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <h3 className="font-medium text-sm">{shelter.name}</h3>
+                          <p className="text-xs text-gray-400">{shelter.current_occupancy}/{shelter.capacity} ({pct}%)</p>
+                        </div>
+                        {!editing && <button onClick={() => { setEditingShelter(shelter.id); setNewOccupancy(shelter.current_occupancy); }} className="text-xs text-blue-600 hover:underline">Edit</button>}
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
+                        <div className={`h-full rounded-full transition-all ${pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-orange-500" : "bg-green-500"}`} style={{ width: `${Math.min(pct, 100)}%` }} />
+                      </div>
+                      {editing && (
+                        <div className="flex gap-2 mt-2">
+                          <input type="number" value={newOccupancy} onChange={(e) => setNewOccupancy(parseInt(e.target.value) || 0)} min={0} max={shelter.capacity} className="flex-1 px-3 py-1.5 border rounded-lg text-sm" />
+                          <button onClick={() => updateShelterOccupancy(shelter.id)} className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg">Save</button>
+                          <button onClick={() => setEditingShelter(null)} className="px-3 py-1.5 text-gray-500 text-sm">Cancel</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {selectedPin && (
+            <PinDetailPopup mode="responder" type="need"
+              name={selectedPin.need.name} phone={selectedPin.need.phone}
+              category={selectedPin.need.category as NeedCategory} urgency={selectedPin.need.urgency as NeedUrgency}
+              status={selectedPin.need.status} description={selectedPin.need.description}
+              approxLat={selectedPin.need.approx_lat} approxLng={selectedPin.need.approx_lng}
+              exactLat={selectedPin.need.exact_lat} exactLng={selectedPin.need.exact_lng}
+              createdAt={selectedPin.need.created_at} onClose={() => setSelectedPin(null)} />
+          )}
+        </>
+      )}
+    </div>
+  );
+}

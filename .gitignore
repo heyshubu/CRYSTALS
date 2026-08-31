@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# environment variables — NEVER commit real keys
+.env
+.env.local
+.env.*.local
+
+# next.js
+.next/
+out/
+
+# misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
