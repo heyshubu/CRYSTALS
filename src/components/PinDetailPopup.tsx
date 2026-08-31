@@ -1,8 +1,8 @@
 "use client";
 
-import { useTheme } from "@/frontend/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG, STATUS_LABELS, getCategoryColor, getUrgencyColor } from "@/frontend/map-icons";
-import type { NeedCategory, NeedUrgency } from "@/shared/types";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, STATUS_LABELS, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
+import type { NeedCategory, NeedUrgency } from "@/lib/types";
 import { MapPin, Clock, User, Phone, X } from "lucide-react";
 
 export type PinDetailMode = "public" | "responder";

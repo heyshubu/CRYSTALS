@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useTheme } from "@/frontend/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/frontend/map-icons";
-import type { NeedCategory } from "@/shared/types";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/lib/map-icons";
+import type { NeedCategory } from "@/lib/types";
 import { Info } from "lucide-react";
 
 export function MapLegend() {

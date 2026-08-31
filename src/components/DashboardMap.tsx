@@ -8,16 +8,16 @@ import {
   Popup,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "@/frontend/theme-context";
+import { useTheme } from "@/lib/theme-context";
 import {
   CATEGORY_CONFIG,
   URGENCY_CONFIG,
   getCategoryColor,
   getUrgencyColor,
-} from "@/frontend/map-icons";
-import { MapLegend } from "@/frontend/MapLegend";
-import { PinDetailPopup } from "@/frontend/PinDetailPopup";
-import type { NeedCategory, NeedUrgency } from "@/shared/types";
+} from "@/lib/map-icons";
+import { MapLegend } from "@/components/MapLegend";
+import { PinDetailPopup } from "@/components/PinDetailPopup";
+import type { NeedCategory, NeedUrgency } from "@/lib/types";
 
 const NEPAL_CENTER: [number, number] = [27.7172, 85.324];
 const DEFAULT_ZOOM = 7;

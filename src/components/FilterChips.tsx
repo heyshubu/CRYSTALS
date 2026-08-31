@@ -1,8 +1,8 @@
 "use client";
 
-import { useTheme } from "@/frontend/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor } from "@/frontend/map-icons";
-import type { NeedCategory } from "@/shared/types";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor } from "@/lib/map-icons";
+import type { NeedCategory } from "@/lib/types";
 
 interface FilterChipsProps {
   selectedCategories: Set<string>;

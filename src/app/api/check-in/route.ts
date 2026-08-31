@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/backend/db";
-import { fuzzLocation } from "@/backend/fuzz-location";
+import pool from "@/lib/db";
+import { fuzzLocation } from "@/lib/fuzz-location";
 
 /**
  * POST /api/check-in
