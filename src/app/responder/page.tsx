@@ -6,14 +6,17 @@ import {
   Phone, ChevronDown, ChevronUp, Hand, CheckSquare,
 } from "lucide-react";
 import { useSession, type ResponderSession } from "@/lib/hooks/use-session";
-import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/lib/map-icons";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
 import { PinDetailPopup } from "@/components/PinDetailPopup";
+import { UrgencyBadge, AvailabilityIndicator, OccupancyBar } from "@/components/UrgencyBadge";
 import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/lib/types";
 
 const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 export default function ResponderPage() {
   const { session, mounted, login, logout } = useSession();
+  const { theme } = useTheme();
   const [code, setCode] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -65,11 +68,7 @@ export default function ResponderPage() {
 
   const markComplete = async (needId: string) => {
     setActionLoading(needId);
-    const res = await fetch("/api/responder/task", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ needId }),
-    });
+    const res = await fetch("/api/responder/task", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ needId }) });
     if (res.ok) { setAssignedTask(null); setNeeds((prev) => prev.filter((n) => n.id !== needId)); }
     setActionLoading(null);
   };
@@ -77,11 +76,7 @@ export default function ResponderPage() {
   const pickUpNeed = async (needId: string) => {
     if (!responder) return;
     setActionLoading(needId);
-    const res = await fetch("/api/responder/pickup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ needId, responderId: responder.id }),
-    });
+    const res = await fetch("/api/responder/pickup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ needId, responderId: responder.id }) });
     if (res.ok) fetchData();
     else { const d = await res.json(); alert(d.error || "Failed."); }
     setActionLoading(null);
@@ -89,30 +84,17 @@ export default function ResponderPage() {
 
   const toggleAvailability = async (a: string) => {
     if (!responder) return;
-    const res = await fetch("/api/responder/availability", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ responderId: responder.id, availability: a }),
-    });
+    const res = await fetch("/api/responder/availability", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ responderId: responder.id, availability: a }) });
     if (res.ok) setAvailability(a);
   };
 
   const updateShelterOccupancy = async (sid: string) => {
-    const res = await fetch("/api/responder/shelter", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ shelterId: sid, current_occupancy: newOccupancy }),
-    });
+    const res = await fetch("/api/responder/shelter", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ shelterId: sid, current_occupancy: newOccupancy }) });
     if (res.ok) { setShelters((prev) => prev.map((s) => s.id === sid ? { ...s, current_occupancy: newOccupancy } : s)); setEditingShelter(null); }
   };
 
-  // Show consistent loading placeholder until localStorage is read (avoids hydration mismatch)
   if (!mounted) {
-    return (
-      <div className="p-4 max-w-lg mx-auto flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-      </div>
-    );
+    return (<div className="p-4 max-w-lg mx-auto flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>);
   }
 
   if (!session) {
@@ -125,8 +107,7 @@ export default function ResponderPage() {
           onKeyDown={(e) => e.key === "Enter" && handleLogin()}
           placeholder="Your access code" className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 text-center text-lg tracking-widest" />
         {loginError && <p className="text-red-500 text-sm mb-4">{loginError}</p>}
-        <button onClick={handleLogin} disabled={loggingIn}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
+        <button onClick={handleLogin} disabled={loggingIn} className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
           {loggingIn ? <Loader2 className="inline w-5 h-5 animate-spin" /> : "Enter"}
         </button>
       </div>
@@ -134,6 +115,19 @@ export default function ResponderPage() {
   }
 
   const unassignedNeeds = needs.filter((n) => !n.is_assigned && n.status === "open");
+
+  // Availability button styles with theme-aware colors + icon
+  const availStyles: Record<string, { active: string; inactive: string; icon: string }> = {
+    available: { active: `border-2 bg-opacity-10`, inactive: "border-gray-200 text-gray-500", icon: "✓" },
+    busy:      { active: `border-2 bg-opacity-10`, inactive: "border-gray-200 text-gray-500", icon: "⏸" },
+    offline:   { active: `border-2 bg-opacity-10`, inactive: "border-gray-200 text-gray-500", icon: "⊘" },
+  };
+
+  const availColors: Record<string, Record<string, string>> = {
+    available: { default: "#22c55e", colorblind: "#009988", "high-contrast": "#008844" },
+    busy:      { default: "#f97316", colorblind: "#ee7733", "high-contrast": "#ee6600" },
+    offline:   { default: "#6b7280", colorblind: "#555555", "high-contrast": "#333333" },
+  };
 
   return (
     <div className="p-4 max-w-lg mx-auto">
@@ -145,15 +139,21 @@ export default function ResponderPage() {
         <button onClick={logout} className="p-2 text-gray-400 hover:text-gray-600"><LogOut className="w-5 h-5" /></button>
       </div>
 
+      {/* Availability toggle — icon + text for non-color redundancy */}
       <div className="flex gap-2 mb-6">
-        {["available", "busy", "offline"].map((a) => (
-          <button key={a} onClick={() => toggleAvailability(a)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition capitalize ${
-              availability === a
-                ? a === "available" ? "border-green-500 bg-green-50 text-green-700" : a === "busy" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-gray-500 bg-gray-50 text-gray-700"
-                : "border-gray-200 text-gray-500"
-            }`}>{a}</button>
-        ))}
+        {["available", "busy", "offline"].map((a) => {
+          const c = availColors[a][theme];
+          return (
+            <button key={a} onClick={() => toggleAvailability(a)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition capitalize flex items-center justify-center gap-1 ${
+                availability === a ? "" : "border-gray-200 text-gray-500"
+              }`}
+              style={availability === a ? { borderColor: c, backgroundColor: c + "15", color: c } : undefined}
+            >
+              {availStyles[a].icon} {a}
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
@@ -167,7 +167,7 @@ export default function ResponderPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{CATEGORY_CONFIG[assignedTask.category as NeedCategory]?.emoji}</span>
                   <span className="font-semibold capitalize">{assignedTask.category}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: URGENCY_CONFIG[assignedTask.urgency as NeedUrgency]?.color + "20", color: URGENCY_CONFIG[assignedTask.urgency as NeedUrgency]?.color }}>{assignedTask.urgency}</span>
+                  <UrgencyBadge urgency={assignedTask.urgency} />
                 </div>
                 <p className="text-sm text-gray-600 mb-2">{assignedTask.description}</p>
                 <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
@@ -192,7 +192,7 @@ export default function ResponderPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <span>{CATEGORY_CONFIG[need.category as NeedCategory]?.emoji}</span>
                       <span className="font-medium capitalize text-sm">{need.category}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color + "20", color: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color }}>{need.urgency}</span>
+                      <UrgencyBadge urgency={need.urgency} />
                     </div>
                     <p className="text-xs text-gray-600 mb-2 line-clamp-2">{need.description}</p>
                     <div className="flex items-center justify-between">
@@ -218,7 +218,7 @@ export default function ResponderPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm capitalize">{need.category}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color + "20", color: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color }}>{need.urgency}</span>
+                      <UrgencyBadge urgency={need.urgency} />
                       {need.is_assigned && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">Assigned</span>}
                     </div>
                     <p className="text-xs text-gray-500 truncate">{need.description}</p>
@@ -229,6 +229,7 @@ export default function ResponderPage() {
             </div>
           </div>
 
+          {/* Shelter Occupancy */}
           <div>
             <button onClick={() => setShowShelters(!showShelters)} className="flex items-center gap-2 font-semibold text-gray-800 mb-2 w-full">
               <Building2 className="w-5 h-5 text-purple-600" />Shelter Occupancy
@@ -237,20 +238,17 @@ export default function ResponderPage() {
             {showShelters && (
               <div className="space-y-3">
                 {shelters.map((shelter) => {
-                  const pct = shelter.capacity > 0 ? Math.round((shelter.current_occupancy / shelter.capacity) * 100) : 0;
                   const editing = editingShelter === shelter.id;
                   return (
                     <div key={shelter.id} className="bg-white border border-gray-200 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <h3 className="font-medium text-sm">{shelter.name}</h3>
-                          <p className="text-xs text-gray-400">{shelter.current_occupancy}/{shelter.capacity} ({pct}%)</p>
+                          <p className="text-xs text-gray-400">{shelter.current_occupancy}/{shelter.capacity}</p>
                         </div>
                         {!editing && <button onClick={() => { setEditingShelter(shelter.id); setNewOccupancy(shelter.current_occupancy); }} className="text-xs text-blue-600 hover:underline">Edit</button>}
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
-                        <div className={`h-full rounded-full transition-all ${pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-orange-500" : "bg-green-500"}`} style={{ width: `${Math.min(pct, 100)}%` }} />
-                      </div>
+                      <OccupancyBar current={shelter.current_occupancy} capacity={shelter.capacity} />
                       {editing && (
                         <div className="flex gap-2 mt-2">
                           <input type="number" value={newOccupancy} onChange={(e) => setNewOccupancy(parseInt(e.target.value) || 0)} min={0} max={shelter.capacity} className="flex-1 px-3 py-1.5 border rounded-lg text-sm" />

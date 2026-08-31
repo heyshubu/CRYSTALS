@@ -10,6 +10,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/lib/nepal-districts";
+import { useTheme } from "@/lib/theme-context";
+import { getStatusColor } from "@/lib/map-icons";
 
 type Status = "safe" | "need_help";
 
@@ -28,6 +30,7 @@ export default function SafePage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const { theme } = useTheme();
 
   const requestGPS = () => {
     if (!navigator.geolocation) {
@@ -146,23 +149,25 @@ export default function SafePage() {
           onClick={() => setStatus("safe")}
           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-semibold border-2 transition ${
             status === "safe"
-              ? "border-green-500 bg-green-50 text-green-700"
-              : "border-gray-200 text-gray-500 hover:border-gray-300"
+              ? "border-2"
+              : "border-2 border-gray-200 text-gray-500 hover:border-gray-300"
           }`}
+          style={status === "safe" ? { borderColor: getStatusColor("safe", theme), backgroundColor: getStatusColor("safe", theme) + "15", color: getStatusColor("safe", theme) } : undefined}
         >
           <ShieldCheck className="w-5 h-5" />
-          I&apos;m Safe
+          ✓ I&apos;m Safe
         </button>
         <button
           onClick={() => setStatus("need_help")}
           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-semibold border-2 transition ${
             status === "need_help"
-              ? "border-red-500 bg-red-50 text-red-700"
-              : "border-gray-200 text-gray-500 hover:border-gray-300"
+              ? "border-2"
+              : "border-2 border-gray-200 text-gray-500 hover:border-gray-300"
           }`}
+          style={status === "need_help" ? { borderColor: getStatusColor("need_help", theme), backgroundColor: getStatusColor("need_help", theme) + "15", color: getStatusColor("need_help", theme) } : undefined}
         >
           <ShieldOff className="w-5 h-5" />
-          I Need Help
+          ! I Need Help
         </button>
       </div>
 

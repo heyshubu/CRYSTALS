@@ -12,6 +12,8 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/lib/nepal-districts";
+import { useTheme } from "@/lib/theme-context";
+import { URGENCY_CONFIG, getUrgencyColor } from "@/lib/map-icons";
 import type { NeedCategory, NeedUrgency } from "@/lib/types";
 
 const CATEGORIES: { value: NeedCategory; label: string }[] = [
@@ -22,11 +24,7 @@ const CATEGORIES: { value: NeedCategory; label: string }[] = [
   { value: "transport", label: "🚗 Transport" },
 ];
 
-const URGENCIES: { value: NeedUrgency; label: string; color: string }[] = [
-  { value: "low", label: "Low", color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
-  { value: "medium", label: "Medium", color: "bg-orange-100 text-orange-700 border-orange-300" },
-  { value: "high", label: "High", color: "bg-red-100 text-red-700 border-red-300" },
-];
+
 
 export default function ReportPage() {
   const [name, setName] = useState("");
@@ -42,6 +40,7 @@ export default function ReportPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const { theme } = useTheme();
 
   // AI suggestion state
   const [aiSuggestion, setAiSuggestion] = useState<{
@@ -279,22 +278,27 @@ export default function ReportPage() {
           Urgency *
         </label>
         <div className="flex gap-3">
-          {URGENCIES.map((u) => (
-            <button
-              key={u.value}
-              onClick={() => {
-                setUrgency(u.value);
-                setUserChangedFields(true);
-              }}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition ${
-                urgency === u.value
-                  ? u.color + " border-current"
-                  : "border-gray-200 text-gray-500 hover:border-gray-300"
-              }`}
-            >
-              {u.label}
-            </button>
-          ))}
+          {(["low", "medium", "high"] as NeedUrgency[]).map((u) => {
+            const cfg = URGENCY_CONFIG[u];
+            const color = cfg.colors[theme];
+            return (
+              <button
+                key={u}
+                onClick={() => {
+                  setUrgency(u);
+                  setUserChangedFields(true);
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition flex items-center justify-center gap-1 ${
+                  urgency === u
+                    ? ""
+                    : "border-gray-200 text-gray-500 hover:border-gray-300"
+                }`}
+                style={urgency === u ? { borderColor: color, backgroundColor: color + "15", color } : undefined}
+              >
+                {cfg.icon} {cfg.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 

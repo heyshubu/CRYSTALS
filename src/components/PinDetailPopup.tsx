@@ -1,6 +1,7 @@
 "use client";
 
-import { CATEGORY_CONFIG, URGENCY_CONFIG, STATUS_LABELS } from "@/lib/map-icons";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, STATUS_LABELS, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
 import type { NeedCategory, NeedUrgency } from "@/lib/types";
 import { MapPin, Clock, User, Phone, X } from "lucide-react";
 
@@ -24,21 +25,10 @@ interface PinDetailPopupProps {
 }
 
 export function PinDetailPopup({
-  mode,
-  type,
-  name,
-  phone,
-  category,
-  urgency,
-  status,
-  description,
-  approxLat,
-  approxLng,
-  exactLat,
-  exactLng,
-  createdAt,
-  onClose,
+  mode, type, name, phone, category, urgency, status, description,
+  approxLat, approxLng, exactLat, exactLng, createdAt, onClose,
 }: PinDetailPopupProps) {
+  const { theme } = useTheme();
   const catConfig = category ? CATEGORY_CONFIG[category] : null;
   const urgConfig = urgency ? URGENCY_CONFIG[urgency] : null;
   const displayLat = mode === "responder" && exactLat ? exactLat : approxLat;
@@ -53,50 +43,38 @@ export function PinDetailPopup({
             {catConfig && (
               <span
                 className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
-                style={{ backgroundColor: catConfig.color + "20" }}
+                style={{ backgroundColor: catConfig.colors[theme] + "20" }}
               >
                 {catConfig.emoji}
               </span>
             )}
             <div>
               <h3 className="font-bold text-lg capitalize">
-                {type === "shelter"
-                  ? "Shelter"
-                  : category
-                  ? CATEGORY_CONFIG[category].label
-                  : status === "safe"
-                  ? "Safety Check-in"
-                  : "Check-in"}
+                {type === "shelter" ? "Shelter" : category ? CATEGORY_CONFIG[category].label : status === "safe" ? "Safety Check-in" : "Check-in"}
               </h3>
               {urgConfig && (
                 <span
-                  className="text-xs font-medium px-2 py-0.5 rounded-full"
+                  className="text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1"
                   style={{
-                    backgroundColor: urgConfig.color + "20",
-                    color: urgConfig.color,
+                    backgroundColor: urgConfig.colors[theme] + "20",
+                    color: urgConfig.colors[theme],
                   }}
                 >
-                  {urgConfig.label} urgency
+                  {urgConfig.icon} {urgConfig.label} urgency
                 </span>
               )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-100"
-          >
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         {/* Body */}
         <div className="p-4 space-y-3">
-          {/* Description (needs only) */}
-          {description && (
-            <p className="text-gray-700 text-sm">{description}</p>
-          )}
+          {description && <p className="text-gray-700 text-sm">{description}</p>}
 
-          {/* Status */}
+          {/* Status — text label always visible, color is supplementary */}
           {status && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-gray-500">Status:</span>
@@ -104,39 +82,28 @@ export function PinDetailPopup({
             </div>
           )}
 
-          {/* Name & Phone (responder mode only, if present) */}
           {mode === "responder" && name && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User className="w-4 h-4" />
-              {name}
+              <User className="w-4 h-4" />{name}
             </div>
           )}
           {mode === "responder" && phone && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Phone className="w-4 h-4" />
-              {phone}
+              <Phone className="w-4 h-4" />{phone}
             </div>
           )}
 
-          {/* Location */}
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <div>
-              <p>
-                {mode === "responder" ? "Exact" : "Approximate"} location:
-              </p>
-              <p className="font-mono text-xs">
-                {displayLat?.toFixed(5)}, {displayLng?.toFixed(5)}
-              </p>
+              <p>{mode === "responder" ? "Exact" : "Approximate"} location:</p>
+              <p className="font-mono text-xs">{displayLat?.toFixed(5)}, {displayLng?.toFixed(5)}</p>
               {mode === "public" && type !== "shelter" && (
-                <p className="text-xs text-gray-400 mt-0.5">
-                  ±300m from actual location (privacy protection)
-                </p>
+                <p className="text-xs text-gray-400 mt-0.5">±300m from actual location (privacy protection)</p>
               )}
             </div>
           </div>
 
-          {/* Timestamp */}
           {createdAt && (
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <Clock className="w-3 h-3" />
@@ -144,11 +111,8 @@ export function PinDetailPopup({
             </div>
           )}
 
-          {/* Mode indicator */}
           <div className="text-xs text-gray-400 border-t pt-2">
-            {mode === "public"
-              ? "🔒 Public view — contact details hidden"
-              : "🔓 Responder view — full details visible"}
+            {mode === "public" ? "🔒 Public view — contact details hidden" : "🔓 Responder view — full details visible"}
           </div>
         </div>
       </div>

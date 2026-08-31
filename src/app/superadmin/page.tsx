@@ -21,7 +21,9 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/hooks/use-session";
 
-import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/lib/map-icons";
+import { useTheme } from "@/lib/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
+import { UrgencyBadge, AvailabilityIndicator } from "@/components/UrgencyBadge";
 import type {
   Need,
   Responder,
@@ -36,6 +38,7 @@ const SKILLS: NeedCategory[] = ["food", "water", "medical", "shelter", "transpor
 
 export default function SuperadminPage() {
   const { session, mounted, login, logout } = useSession();
+  const { theme } = useTheme();
   const [code, setCode] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -369,17 +372,7 @@ export default function SuperadminPage() {
                           <p className="text-xs text-gray-400">{r.coverage}</p>
                         </div>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          r.availability === "available"
-                            ? "bg-green-100 text-green-700"
-                            : r.availability === "busy"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {r.availability}
-                      </span>
+                      <AvailabilityIndicator availability={r.availability} />
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <Key className="w-3 h-3 text-gray-400" />
@@ -422,16 +415,7 @@ export default function SuperadminPage() {
                             {CATEGORY_CONFIG[need.category as NeedCategory]?.emoji}
                           </span>
                           <span className="font-semibold text-sm capitalize">{need.category}</span>
-                          <span
-                            className="text-xs px-2 py-0.5 rounded-full font-medium"
-                            style={{
-                              backgroundColor:
-                                URGENCY_CONFIG[need.urgency as NeedUrgency]?.color + "20",
-                              color: URGENCY_CONFIG[need.urgency as NeedUrgency]?.color,
-                            }}
-                          >
-                            {need.urgency}
-                          </span>
+                          <UrgencyBadge urgency={need.urgency} />
                         </div>
                         <p className="text-xs text-gray-600 mb-2">{need.description}</p>
 
