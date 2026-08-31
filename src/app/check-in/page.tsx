@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { FormLayout } from "@/frontend/layouts/FormLayout";
-import { CheckCircle2, Asterisk, Target, Send, Lock, MapPin, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Target, Send, Lock, MapPin, Loader2, AlertCircle } from "lucide-react";
 
 export default function CheckInPage() {
-  const [status, setStatus] = useState<"safe" | "help">("safe");
+
   const [gpsStatus, setGpsStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
@@ -48,39 +48,10 @@ export default function CheckInPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full mb-6">
           <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
             
-            {/* Current Status */}
-            <div>
-              <label className="block text-sm font-bold text-gray-900 mb-3">
-                Current Status <span className="text-gray-900">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setStatus("safe")}
-                  className={`flex flex-col items-center justify-center py-6 px-4 rounded-xl border-2 transition-colors ${
-                    status === "safe"
-                      ? "bg-[#fced47] border-[#fced47] text-gray-900"
-                      : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  <CheckCircle2 className="w-6 h-6 mb-2" />
-                  <span className="font-bold text-lg">I&apos;m Safe</span>
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setStatus("help")}
-                  className={`flex flex-col items-center justify-center py-6 px-4 rounded-xl border-2 transition-colors ${
-                    status === "help"
-                      ? "text-white border-[#CC79A7]"
-                      : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                  style={status === "help" ? { backgroundColor: '#CC79A7' } : {}}
-                >
-                  <Asterisk className="w-6 h-6 mb-2" />
-                  <span className="font-bold text-lg">I Need Help</span>
-                </button>
-              </div>
+            {/* Status Badge */}
+            <div className="flex items-center gap-3 py-4 px-5 rounded-xl bg-[#fced47] border-2 border-[#fced47]">
+              <CheckCircle2 className="w-6 h-6 text-gray-900" />
+              <span className="font-bold text-lg text-gray-900">I&apos;m Safe</span>
             </div>
 
             {/* Name */}
