@@ -16,8 +16,6 @@ import {
   getCategoryColor,
   getUrgencyColor,
 } from "@/lib/map-icons";
-import { FilterChips } from "@/components/FilterChips";
-import { MapLegend } from "@/components/MapLegend";
 import { PinDetailPopup } from "@/components/PinDetailPopup";
 import type {
   PublicCheckIn,
@@ -106,13 +104,6 @@ export default function MapContent() {
         )}
       </div>
 
-      <FilterChips
-        selectedCategories={selectedCategories}
-        onToggleCategory={toggleCategory}
-        selectedStatuses={selectedStatuses}
-        onToggleStatus={toggleStatus}
-      />
-
       <MapContainer center={NEPAL_CENTER} zoom={DEFAULT_ZOOM} className="h-full w-full" zoomControl={false}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -156,8 +147,6 @@ export default function MapContent() {
           </CircleMarker>
         ))}
       </MapContainer>
-
-      <MapLegend />
 
       {selectedPin && (
         <PinDetailPopup
