@@ -7,6 +7,13 @@ import { MapPin, Clock, User, Phone, X } from "lucide-react";
 
 export type PinDetailMode = "public" | "responder";
 
+interface ActionButton {
+  label: string;
+  onClick: () => void;
+  variant?: "primary" | "success" | "danger";
+  disabled?: boolean;
+}
+
 interface PinDetailPopupProps {
   mode: PinDetailMode;
   type: "check_in" | "need" | "shelter";
@@ -22,11 +29,12 @@ interface PinDetailPopupProps {
   exactLng?: number;
   createdAt?: string;
   onClose: () => void;
+  actions?: ActionButton[];
 }
 
 export function PinDetailPopup({
   mode, type, name, phone, category, urgency, status, description,
-  approxLat, approxLng, exactLat, exactLng, createdAt, onClose,
+  approxLat, approxLng, exactLat, exactLng, createdAt, onClose, actions,
 }: PinDetailPopupProps) {
   const { theme } = useTheme();
   const catConfig = category ? CATEGORY_CONFIG[category] : null;
@@ -108,6 +116,28 @@ export function PinDetailPopup({
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <Clock className="w-3 h-3" />
               {new Date(createdAt).toLocaleString()}
+            </div>
+          )}
+
+          {/* Action buttons — responder mode only */}
+          {mode === "responder" && actions && actions.length > 0 && (
+            <div className="flex flex-col gap-2 pt-2 border-t">
+              {actions.map((action, i) => (
+                <button
+                  key={i}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                  className={`w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    action.variant === "success"
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : action.variant === "danger"
+                      ? "bg-red-600 text-white hover:bg-red-700"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {action.label}
+                </button>
+              ))}
             </div>
           )}
 

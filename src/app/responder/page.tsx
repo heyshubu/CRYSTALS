@@ -8,7 +8,8 @@ import {
 import { useSession, type ResponderSession } from "@/frontend/use-session";
 import { useTheme } from "@/frontend/theme-context";
 import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/frontend/map-icons";
-import { PinDetailPopup } from "@/frontend/PinDetailPopup";
+import dynamic from "next/dynamic";
+const DashboardMap = dynamic(() => import("@/frontend/DashboardMap").then(m => ({ default: m.DashboardMap })), { ssr: false });
 import { UrgencyBadge, AvailabilityIndicator, OccupancyBar } from "@/frontend/UrgencyBadge";
 import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/shared/types";
 
@@ -26,7 +27,6 @@ export default function ResponderPage() {
   const [assignedTask, setAssignedTask] = useState<Need | null>(null);
   const [shelters, setShelters] = useState<PublicShelter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPin, setSelectedPin] = useState<{ need: Need } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [availability, setAvailability] = useState(responder?.availability || "available");
   const [showShelters, setShowShelters] = useState(false);
@@ -156,6 +156,20 @@ export default function ResponderPage() {
         })}
       </div>
 
+      {/* Dashboard Map — responder mode with exact locations */}
+      {!loading && (
+        <DashboardMap
+          needs={needs}
+          checkIns={[]}
+          shelters={shelters}
+          actions={assignedTask ? [
+            { label: "✓ Mark Complete", onClick: () => markComplete(assignedTask.id), variant: "success" as const }
+          ] : unassignedNeeds.slice(0, 5).map((n) => (
+            { label: `🤚 Pick Up (${n.category})`, onClick: () => pickUpNeed(n.id), variant: "primary" as const, disabled: !!assignedTask }
+          ))}
+        />
+      )}
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>
       ) : (
@@ -212,8 +226,8 @@ export default function ResponderPage() {
             <h2 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-gray-600" />All Needs ({needs.length})</h2>
             <div className="space-y-2">
               {needs.map((need) => (
-                <div key={need.id} onClick={() => setSelectedPin({ need })}
-                  className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition">
+                <div key={need.id}
+                  className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3">
                   <span className="text-lg">{CATEGORY_CONFIG[need.category as NeedCategory]?.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -263,15 +277,7 @@ export default function ResponderPage() {
             )}
           </div>
 
-          {selectedPin && (
-            <PinDetailPopup mode="responder" type="need"
-              name={selectedPin.need.name} phone={selectedPin.need.phone}
-              category={selectedPin.need.category as NeedCategory} urgency={selectedPin.need.urgency as NeedUrgency}
-              status={selectedPin.need.status} description={selectedPin.need.description}
-              approxLat={selectedPin.need.approx_lat} approxLng={selectedPin.need.approx_lng}
-              exactLat={selectedPin.need.exact_lat} exactLng={selectedPin.need.exact_lng}
-              createdAt={selectedPin.need.created_at} onClose={() => setSelectedPin(null)} />
-          )}
+
         </>
       )}
     </div>
