@@ -20,7 +20,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useSession } from "@/lib/hooks/use-session";
-import { supabase } from "@/lib/supabase/client";
+
 import { CATEGORY_CONFIG, URGENCY_CONFIG } from "@/lib/map-icons";
 import type {
   Need,
@@ -82,27 +82,23 @@ export default function SuperadminPage() {
       setLoading(true);
       const [respRes, needsRes, sheltersRes, invRes] = await Promise.all([
         fetch("/api/admin/responders").then((r) => r.json()),
-        supabase
-          .from("public_needs")
-          .select("*")
-          .in("status", ["open", "in_progress"])
-          .order("urgency"),
-        supabase.from("public_shelters").select("*").order("name"),
+        fetch("/api/data/needs").then((r) => r.json()),
+        fetch("/api/data/shelters").then((r) => r.json()),
         fetch("/api/admin/inventory").then((r) => r.json()),
       ]);
 
       if (respRes.responders) setResponders(respRes.responders);
-      if (needsRes.data) {
+      if (Array.isArray(needsRes)) {
         setNeeds(
-          (needsRes.data as Need[]).sort(
+          (needsRes as Need[]).sort(
             (a, b) => (URGENCY_ORDER[a.urgency] ?? 2) - (URGENCY_ORDER[b.urgency] ?? 2)
           )
         );
       }
-      if (sheltersRes.data) {
-        setShelters(sheltersRes.data);
-        if (sheltersRes.data.length > 0 && !selectedShelter) {
-          setSelectedShelter(sheltersRes.data[0].id);
+      if (Array.isArray(sheltersRes)) {
+        setShelters(sheltersRes as PublicShelter[]);
+        if (sheltersRes.length > 0 && !selectedShelter) {
+          setSelectedShelter(sheltersRes[0].id);
         }
       }
       if (invRes.items) setInventory(invRes.items);
