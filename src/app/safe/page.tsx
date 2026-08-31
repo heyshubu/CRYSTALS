@@ -137,11 +137,15 @@ export default function SafePage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-6">I&apos;m Safe</h1>
-      <p className="text-gray-500 text-sm mb-6">
-        Check in to let others know your status. This is anonymous — no
-        account needed.
-      </p>
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-4">
+          <ShieldCheck className="w-8 h-8 text-green-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">I&apos;m Safe</h1>
+        <p className="text-gray-500 text-sm">
+          Check in to let others know your status. This is anonymous — no account needed.
+        </p>
+      </div>
 
       {/* Status toggle */}
       <div className="flex gap-3 mb-6">

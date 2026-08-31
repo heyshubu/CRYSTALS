@@ -199,11 +199,15 @@ export default function ReportPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-1">Report a Need</h1>
-      <p className="text-gray-500 text-sm mb-6">
-        Describe what is needed — our AI will suggest a category and urgency to
-        help responders prioritize.
-      </p>
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-8 h-8 text-orange-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Report a Need</h1>
+        <p className="text-gray-500 text-sm">
+          Describe what is needed — our AI will suggest a category and urgency to help responders prioritize.
+        </p>
+      </div>
 
       {/* Description (AI triggers from this) */}
       <div className="mb-4">

@@ -5,6 +5,7 @@ import {
   CheckCircle2, MapPin, Loader2, LogOut, Building2,
   Phone, Hand, CheckSquare, AlertCircle, Save,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSession, type ResponderSession } from "@/lib/hooks/use-session";
 import { useTheme } from "@/lib/theme-context";
 import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
@@ -16,11 +17,9 @@ import type { Need, PublicShelter, NeedCategory, NeedUrgency } from "@/lib/types
 const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 export default function ResponderPage() {
-  const { session, mounted, login, logout } = useSession();
+  const router = useRouter();
+  const { session, mounted } = useSession();
   const { theme } = useTheme();
-  const [code, setCode] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [loggingIn, setLoggingIn] = useState(false);
   const responder = (session as ResponderSession)?.responder;
 
   const [needs, setNeeds] = useState<Need[]>([]);
@@ -47,15 +46,6 @@ export default function ResponderPage() {
       });
     }
   }, [shelters]);
-
-  const handleLogin = async () => {
-    if (!code.trim()) return;
-    setLoggingIn(true);
-    setLoginError("");
-    const result = await login(code.trim());
-    setLoggingIn(false);
-    if (result.error) setLoginError(result.error);
-  };
 
   const fetchData = async (resp: { id: string }) => {
     try {
@@ -136,19 +126,15 @@ export default function ResponderPage() {
     return (<div className="p-4 max-w-lg mx-auto flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>);
   }
 
-  // ── Login screen (also catches superadmin sessions on wrong page) ───
+  // ── Redirect to login if not authenticated ───
   if (!session || session.role !== "responder") {
     return (
       <div className="p-4 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4"><CheckSquare className="w-6 h-6 text-blue-600" /></div>
-        <h1 className="text-xl font-bold mb-2">Responder Login</h1>
-        <p className="text-gray-500 text-sm mb-6">Enter your personal access code.</p>
-        <input type="text" value={code} onChange={(e) => { setCode(e.target.value); setLoginError(""); }}
-          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          placeholder="Your access code" className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 text-center text-lg tracking-widest" />
-        {loginError && <p className="text-red-500 text-sm mb-4">{loginError}</p>}
-        <button onClick={handleLogin} disabled={loggingIn} className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
-          {loggingIn ? <Loader2 className="inline w-5 h-5 animate-spin" /> : "Enter"}
+        <CheckSquare className="w-12 h-12 text-blue-400 mb-4" />
+        <h1 className="text-xl font-bold mb-2">Responder Access Required</h1>
+        <p className="text-gray-500 text-sm mb-6">Please sign in with your responder code.</p>
+        <button onClick={() => router.push("/login")} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700">
+          Go to Login
         </button>
       </div>
     );
@@ -165,37 +151,28 @@ export default function ResponderPage() {
 
   // ── Main dashboard ─────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top bar with availability + logout */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-lg font-bold text-gray-800">
-              Welcome, <span className="text-blue-600">{responder?.name}</span>
-            </h1>
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
-              {["available", "busy", "offline"].map((a) => {
-                const c = availColors[a][theme];
-                return (
-                  <button key={a} onClick={() => toggleAvailability(a)}
-                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      availability === a ? "text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
-                    }`}
-                    style={availability === a ? { backgroundColor: c } : undefined}
-                  >
-                    {a.charAt(0).toUpperCase() + a.slice(1)}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <button onClick={logout} className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm">
-            <LogOut className="w-4 h-4" /> Logout
-          </button>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+      {/* Availability toggle */}
+      <div className="flex items-center gap-4 mb-6">
+        <h1 className="text-xl font-bold text-gray-900">
+          Welcome, <span className="text-blue-600">{responder?.name}</span>
+        </h1>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+          {["available", "busy", "offline"].map((a) => {
+            const c = availColors[a][theme];
+            return (
+              <button key={a} onClick={() => toggleAvailability(a)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  availability === a ? "text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+                style={availability === a ? { backgroundColor: c } : undefined}
+              >
+                {a.charAt(0).toUpperCase() + a.slice(1)}
+              </button>
+            );
+          })}
         </div>
       </div>
-
-      <div className="max-w-6xl mx-auto px-6 py-6">
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>
         ) : (
@@ -331,6 +308,5 @@ export default function ResponderPage() {
           </div>
         )}
       </div>
-    </div>
   );
 }

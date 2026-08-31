@@ -19,6 +19,7 @@ import {
   Copy,
   AlertCircle,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/hooks/use-session";
 
 import { useTheme } from "@/lib/theme-context";
@@ -39,12 +40,9 @@ const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 const SKILLS: NeedCategory[] = ["food", "water", "medical", "shelter", "transport"];
 
 export default function SuperadminPage() {
-  const { session, mounted, login, logout } = useSession();
+  const router = useRouter();
+  const { session, mounted } = useSession();
   const { theme } = useTheme();
-  const [code, setCode] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [loggingIn, setLoggingIn] = useState(false);
-
   // Data state
   const [responders, setResponders] = useState<Responder[]>([]);
   const [needs, setNeeds] = useState<Need[]>([]);
@@ -68,16 +66,6 @@ export default function SuperadminPage() {
   const [matchSuggestions, setMatchSuggestions] = useState<
     Record<string, Responder | null>
   >({});
-
-  // ── Login handler ──────────────────────────────────────────
-  const handleLogin = async () => {
-    if (!code.trim()) return;
-    setLoggingIn(true);
-    setLoginError("");
-    const result = await login(code.trim());
-    setLoggingIn(false);
-    if (result.error) setLoginError(result.error);
-  };
 
   // ── Fetch data ─────────────────────────────────────────────
   useEffect(() => {
@@ -208,39 +196,15 @@ export default function SuperadminPage() {
     );
   }
 
-  // ── Login screen ───────────────────────────────────────────
+  // ── Redirect to login if not authenticated ───
   if (!session || session.role !== "superadmin") {
     return (
       <div className="p-4 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-        <Key className="w-12 h-12 text-purple-600 mb-4" />
-        <h1 className="text-xl font-bold mb-2">Superadmin Login</h1>
-        <p className="text-gray-500 text-sm mb-6">
-          Enter the coordinator passcode.
-        </p>
-        <input
-          type="password"
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value);
-            setLoginError("");
-          }}
-          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-          placeholder="Coordinator passcode"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 text-center text-lg tracking-widest"
-        />
-        {loginError && (
-          <p className="text-red-500 text-sm mb-4">{loginError}</p>
-        )}
-        <button
-          onClick={handleLogin}
-          disabled={loggingIn}
-          className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50"
-        >
-          {loggingIn ? (
-            <Loader2 className="inline w-5 h-5 animate-spin" />
-          ) : (
-            "Enter"
-          )}
+        <Key className="w-12 h-12 text-purple-400 mb-4" />
+        <h1 className="text-xl font-bold mb-2">Coordinator Access Required</h1>
+        <p className="text-gray-500 text-sm mb-6">Please sign in with your coordinator passcode.</p>
+        <button onClick={() => router.push("/login")} className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700">
+          Go to Login
         </button>
       </div>
     );
@@ -248,15 +212,33 @@ export default function SuperadminPage() {
 
   // ── Dashboard ──────────────────────────────────────────────
   const unassignedNeeds = needs.filter((n) => !n.is_assigned);
+  const totalAssigned = needs.filter((n) => n.is_assigned).length;
+  const availableResponders = responders.filter((r) => r.availability === "available").length;
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">Superadmin Dashboard</h1>
-        <button onClick={logout} className="p-2 text-gray-400 hover:text-gray-600">
-          <LogOut className="w-5 h-5" />
-        </button>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      {/* Header with stats */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Coordinator Dashboard</h1>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500">Responders</p>
+            <p className="text-2xl font-bold text-gray-900">{responders.length}</p>
+            <p className="text-[10px] text-green-600">{availableResponders} available</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500">Open Needs</p>
+            <p className="text-2xl font-bold text-orange-600">{unassignedNeeds.length}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500">Assigned</p>
+            <p className="text-2xl font-bold text-blue-600">{totalAssigned}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500">Shelters</p>
+            <p className="text-2xl font-bold text-purple-600">{shelters.length}</p>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -376,26 +358,28 @@ export default function SuperadminPage() {
                 {responders.map((r) => (
                   <div
                     key={r.id}
-                    className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm"
+                    className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{CATEGORY_CONFIG[r.skill as NeedCategory]?.emoji}</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-gray-50">
+                          {CATEGORY_CONFIG[r.skill as NeedCategory]?.emoji}
+                        </div>
                         <div>
-                          <h3 className="font-semibold text-sm">{r.name}</h3>
-                          <p className="text-xs text-gray-400">{r.coverage}</p>
+                          <h3 className="font-semibold text-sm text-gray-900">{r.name}</h3>
+                          <p className="text-xs text-gray-500">{r.coverage} · {r.skill}</p>
                         </div>
                       </div>
                       <AvailabilityIndicator availability={r.availability} />
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
                       <Key className="w-3 h-3 text-gray-400" />
                       <code className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono">
                         {r.login_code}
                       </code>
                       <button
                         onClick={() => copyCode(r.login_code)}
-                        className="text-xs text-blue-600 hover:underline flex items-center gap-0.5"
+                        className="text-xs text-blue-600 hover:underline flex items-center gap-0.5 ml-auto"
                       >
                         <Copy className="w-3 h-3" />
                         {copiedCode === r.login_code ? "Copied!" : "Copy"}

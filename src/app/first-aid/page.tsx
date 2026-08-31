@@ -24,13 +24,15 @@ export default function FirstAidPage() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-1">
-        <HeartPulse className="w-6 h-6 text-red-600" />
-        <h1 className="text-xl font-bold">First-Aid Reference</h1>
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <HeartPulse className="w-8 h-8 text-red-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">First-Aid Reference</h1>
+        <p className="text-gray-500 text-sm">
+          Plain-language first-aid guides for common emergencies.
+        </p>
       </div>
-      <p className="text-gray-500 text-sm mb-2">
-        Plain-language first-aid guides for common emergencies.
-      </p>
 
       {/* Offline badge */}
       <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-full mb-6 w-fit">

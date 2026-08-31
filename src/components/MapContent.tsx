@@ -64,14 +64,15 @@ function makeSquareIcon(emoji: string, bg: string, size = 32): L.DivIcon {
   });
 }
 
-// Category icon configs matching the picture
-const CATEGORY_ICONS: Record<string, { emoji: string; bg: string; shape: "circle" | "square" }> = {
+// Category icon configs with custom images for safe/need_help
+const CATEGORY_ICONS: Record<string, { emoji: string; bg: string; shape: "circle" | "square"; image?: string }> = {
   food:      { emoji: "🍽️", bg: "#c57199", shape: "square" },
   water:     { emoji: "💧", bg: "#0072B2", shape: "square" },
   medical:   { emoji: "⛑️", bg: "#0072B2", shape: "circle" },
   shelter:   { emoji: "🏠", bg: "#fced47", shape: "circle" },
   transport: { emoji: "🚗", bg: "#6b7280", shape: "square" },
-  safe:      { emoji: "✅", bg: "#22c55e", shape: "circle" },
+  safe:      { emoji: "✅", bg: "#22c55e", shape: "circle", image: "/i-safe.png" },
+  need_help: { emoji: "🆘", bg: "#ef4444", shape: "circle", image: "/i-need-help.png" },
 };
 
 const URGENCY_BORDER: Record<string, string> = {
@@ -83,6 +84,24 @@ const URGENCY_BORDER: Record<string, string> = {
 function getMarkerIcon(category: string, urgency?: string): L.DivIcon {
   const cfg = CATEGORY_ICONS[category] ?? CATEGORY_ICONS.safe;
   const border = urgency ? (URGENCY_BORDER[urgency] ?? "white") : "white";
+  // Use custom image icons for safe/need_help check-ins
+  if (cfg.image) {
+    return L.divIcon({
+      html: `<div style="
+        width:40px;height:40px;
+        border-radius:50%;
+        overflow:hidden;
+        border:2.5px solid ${border};
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+        cursor:pointer;
+        background:white;
+      "><img src="${cfg.image}" style="width:100%;height:100%;object-fit:cover;" /></div>`,
+      className: "",
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
+      popupAnchor: [0, -20],
+    });
+  }
   return cfg.shape === "square"
     ? makeSquareIcon(cfg.emoji, cfg.bg)
     : makeIcon(cfg.emoji, cfg.bg, 36, border);
@@ -160,12 +179,12 @@ export default function MapContent() {
         />
         <MapEvents onIdle={() => {}} />
 
-        {/* Check-in markers */}
+        {/* Check-in markers — custom icons per status */}
         {filteredCheckIns.map((c) => (
           <Marker
             key={c.id}
             position={[c.approx_lat, c.approx_lng]}
-            icon={getMarkerIcon("safe")}
+            icon={getMarkerIcon(c.status === "need_help" ? "need_help" : "safe")}
             eventHandlers={{ click: () => setSelectedPin({ type: "check_in", data: c }) }}
           >
             <Popup>✅ {c.name || "Anonymous"} — {c.status === "safe" ? "Safe" : "Needs Help"}</Popup>

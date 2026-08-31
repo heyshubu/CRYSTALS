@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/components/layouts/MainLayout";
+// AppShell handles layout
 import {
   Search,
   Home,
@@ -151,8 +151,7 @@ export default function ResourcesPage() {
   }
 
   return (
-    <MainLayout>
-      <div className="w-full">
+    <div className="p-4 max-w-5xl mx-auto w-full">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Resources</h1>
@@ -351,7 +350,6 @@ export default function ResourcesPage() {
             </p>
           </div>
         )}
-      </div>
-    </MainLayout>
+    </div>
   );
 }
