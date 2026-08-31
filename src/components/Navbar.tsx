@@ -14,7 +14,7 @@ export function Navbar() {
         <Link href="/" aria-label="Sanyukta Home">
           <div className="w-10 h-10 relative">
             <Image
-              src="/logo.png"
+              src="/Logo.jpeg"
               alt="Sanyukta Logo"
               fill
               className="object-contain"
@@ -37,6 +37,12 @@ export function Navbar() {
           I am safe
         </Link>
         <Link 
+          href="/resources" 
+          className={`${pathname === '/resources' ? 'text-[#0072B2] border-b-2 border-[#0072B2]' : 'hover:text-[#0072B2]'} transition-colors pb-1`}
+        >
+          Resources
+        </Link>
+        <Link 
           href="/login" 
           className={`${pathname === '/login' ? 'text-[#0072B2] border-b-2 border-[#0072B2]' : 'hover:text-[#0072B2]'} transition-colors pb-1`}
         >
@@ -44,10 +50,10 @@ export function Navbar() {
         </Link>
       </div>
 
-      <button className="flex items-center gap-2 text-white px-5 py-2.5 rounded-full font-medium transition-opacity hover:opacity-90" style={{ backgroundColor: '#0072B2' }}>
+      <Link href="/report-emergency" className="flex items-center gap-2 text-white px-5 py-2.5 rounded-full font-medium transition-opacity hover:opacity-90" style={{ backgroundColor: '#0072B2' }}>
         <Asterisk className="w-4 h-4" />
         Report Emergency
-      </button>
+      </Link>
     </nav>
   );
 }
