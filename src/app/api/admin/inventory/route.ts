@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import { safeQuery } from "@/lib/db";
 
 /** GET /api/admin/inventory?shelterId=xxx */
 export async function GET(req: NextRequest) {
@@ -14,13 +14,8 @@ export async function GET(req: NextRequest) {
   }
   query += " ORDER BY item_name";
 
-  try {
-    const { rows } = await pool.query(query, params);
-    return NextResponse.json({ items: rows });
-  } catch (err) {
-    console.error("inventory GET error:", err);
-    return NextResponse.json({ items: [] });
-  }
+  const { rows } = await safeQuery(query, params);
+  return NextResponse.json({ items: rows });
 }
 
 /** POST /api/admin/inventory — upsert item */
@@ -31,16 +26,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All fields required." }, { status: 400 });
     }
 
-    const { rows } = await pool.query(
+    const { rows, error } = await safeQuery(
       `INSERT INTO shelter_inventory (shelter_id, item_name, quantity, unit)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (shelter_id, item_name) DO UPDATE SET quantity = $3, unit = $4
        RETURNING *`,
       [shelter_id, item_name.trim(), quantity, unit?.trim() || "units"]
     );
+    if (error) return NextResponse.json({ error: "Failed." }, { status: 500 });
     return NextResponse.json({ item: rows[0] }, { status: 201 });
-  } catch (err) {
-    console.error("inventory POST error:", err);
+  } catch {
     return NextResponse.json({ error: "Failed." }, { status: 500 });
   }
 }
@@ -50,10 +45,9 @@ export async function DELETE(req: NextRequest) {
   try {
     const { itemId } = await req.json();
     if (!itemId) return NextResponse.json({ error: "itemId required." }, { status: 400 });
-    await pool.query(`DELETE FROM shelter_inventory WHERE id = $1`, [itemId]);
+    await safeQuery(`DELETE FROM shelter_inventory WHERE id = $1`, [itemId]);
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("inventory DELETE error:", err);
+  } catch {
     return NextResponse.json({ error: "Failed." }, { status: 500 });
   }
 }

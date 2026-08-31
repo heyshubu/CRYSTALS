@@ -1,62 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
-
-function generateCode(skill: string): string {
-  const suffix = Math.floor(1000 + Math.random() * 9000);
-  return `RESP-${skill.toUpperCase().slice(0, 4)}-${suffix}`;
-}
+import { safeQuery } from "@/lib/db";
 
 /** GET /api/admin/responders */
 export async function GET() {
-  const { rows } = await pool.query(`SELECT * FROM responders ORDER BY name`);
+  const { rows } = await safeQuery(`SELECT * FROM responders ORDER BY name`);
   return NextResponse.json({ responders: rows });
 }
 
-/** POST /api/admin/responders — add responder */
+/** POST /api/admin/responders — create a new responder */
 export async function POST(req: NextRequest) {
   try {
     const { name, phone, skill, coverage } = await req.json();
-    if (!name?.trim() || !skill || !coverage?.trim()) {
-      return NextResponse.json({ error: "Name, skill, and coverage required." }, { status: 400 });
+    if (!name || !skill || !coverage) {
+      return NextResponse.json({ error: "Name, skill, and coverage are required." }, { status: 400 });
     }
 
-    let code: string;
-    for (let i = 0; i < 10; i++) {
-      code = generateCode(skill);
-      const existing = await pool.query(`SELECT id FROM responders WHERE login_code = $1`, [code]);
-      if (existing.rows.length === 0) break;
-    }
+    // Generate unique login code
+    const prefix = `RESP-${skill.toUpperCase().slice(0, 4)}`;
+    const suffix = String(Math.floor(1000 + Math.random() * 9000));
+    const code = `${prefix}-${suffix}`;
 
-    const { rows } = await pool.query(
-      `INSERT INTO responders (name, phone, skill, coverage, login_code)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [name.trim(), phone?.trim() || null, skill, coverage.trim(), code!]
+    const { rows, error } = await safeQuery(
+      `INSERT INTO responders (name, phone, skill, coverage, availability, login_code)
+       VALUES ($1, $2, $3, $4, 'available', $5)
+       RETURNING *`,
+      [name.trim(), phone?.trim() || null, skill, coverage.trim(), code]
     );
+    if (error) return NextResponse.json({ error: "Failed to create responder." }, { status: 500 });
     return NextResponse.json({ responder: rows[0] }, { status: 201 });
-  } catch (err) {
-    console.error("responders POST error:", err);
-    return NextResponse.json({ error: "Failed to add." }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Failed to create responder." }, { status: 500 });
   }
 }
 
-/** PATCH /api/admin/responders — update */
-export async function PATCH(req: NextRequest) {
+/** PUT /api/admin/responders — update a responder */
+export async function PUT(req: NextRequest) {
   try {
-    const { id, skill, coverage, phone } = await req.json();
-    if (!id) return NextResponse.json({ error: "id required." }, { status: 400 });
+    const { id, name, phone, skill, coverage, availability } = await req.json();
+    if (!id) return NextResponse.json({ error: "Responder ID required." }, { status: 400 });
 
     const updates: string[] = [];
     const values: unknown[] = [];
     let idx = 1;
-    if (skill !== undefined) { updates.push(`skill = $${idx++}`); values.push(skill); }
-    if (coverage !== undefined) { updates.push(`coverage = $${idx++}`); values.push(coverage); }
-    if (phone !== undefined) { updates.push(`phone = $${idx++}`); values.push(phone || null); }
-    values.push(id);
 
-    await pool.query(`UPDATE responders SET ${updates.join(", ")} WHERE id = $${idx}`, values);
+    if (name) { updates.push(`name = $${idx++}`); values.push(name.trim()); }
+    if (phone !== undefined) { updates.push(`phone = $${idx++}`); values.push(phone || null); }
+    if (skill) { updates.push(`skill = $${idx++}`); values.push(skill); }
+    if (coverage) { updates.push(`coverage = $${idx++}`); values.push(coverage.trim()); }
+    if (availability) { updates.push(`availability = $${idx++}`); values.push(availability); }
+
+    if (updates.length === 0) return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
+
+    values.push(id);
+    const { error } = await safeQuery(
+      `UPDATE responders SET ${updates.join(", ")} WHERE id = $${idx}`,
+      values
+    );
+    if (error) return NextResponse.json({ error: "Failed to update." }, { status: 500 });
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("responders PATCH error:", err);
-    return NextResponse.json({ error: "Failed to update." }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Failed to update responder." }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import { safeQuery } from "@/lib/db";
 
 /**
  * POST /api/auth/login
@@ -16,27 +16,26 @@ export async function POST(req: NextRequest) {
     const trimmedCode = code.trim();
 
     // Check superadmin
-    const adminResult = await pool.query(
+    const { rows: adminRows } = await safeQuery(
       "SELECT passcode FROM admin_config WHERE passcode = $1",
       [trimmedCode]
     );
-    if (adminResult.rows.length > 0) {
+    if (adminRows.length > 0) {
       return NextResponse.json({ role: "superadmin" });
     }
 
     // Check responder
-    const respResult = await pool.query(
+    const { rows: respRows } = await safeQuery(
       `SELECT id, name, phone, skill, coverage, availability
        FROM responders WHERE login_code = $1`,
       [trimmedCode]
     );
-    if (respResult.rows.length === 0) {
+    if (respRows.length === 0) {
       return NextResponse.json({ error: "Invalid code. Please try again." }, { status: 401 });
     }
 
-    return NextResponse.json({ role: "responder", responder: respResult.rows[0] });
-  } catch (err) {
-    console.error("login error:", err);
+    return NextResponse.json({ role: "responder", responder: respRows[0] });
+  } catch {
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }
