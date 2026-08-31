@@ -2,10 +2,40 @@
 
 import { useState } from "react";
 import { FormLayout } from "@/components/layouts/FormLayout";
-import { CheckCircle2, Asterisk, Target, Send, Lock } from "lucide-react";
+import { CheckCircle2, Asterisk, Target, Send, Lock, MapPin, Loader2, AlertCircle } from "lucide-react";
 
 export default function CheckInPage() {
   const [status, setStatus] = useState<"safe" | "help">("safe");
+  const [gpsStatus, setGpsStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+
+  function handleGps() {
+    if (!navigator.geolocation) {
+      setGpsError("Geolocation is not supported by your browser.");
+      setGpsStatus("error");
+      return;
+    }
+    setGpsStatus("loading");
+    setGpsError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsStatus("success");
+      },
+      (err) => {
+        setGpsStatus("error");
+        if (err.code === err.PERMISSION_DENIED) {
+          setGpsError("Location permission denied. Please allow access and try again.");
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          setGpsError("Location unavailable. Try selecting your district below.");
+        } else {
+          setGpsError("Could not get your location. Please try again.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
 
   return (
     <FormLayout>
@@ -42,21 +72,20 @@ export default function CheckInPage() {
                   onClick={() => setStatus("help")}
                   className={`flex flex-col items-center justify-center py-6 px-4 rounded-xl border-2 transition-colors ${
                     status === "help"
-                      ? "bg-[#fced47] border-[#fced47] text-gray-900"
+                      ? "text-white border-[#CC79A7]"
                       : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                   }`}
+                  style={status === "help" ? { backgroundColor: '#CC79A7' } : {}}
                 >
-                  <Asterisk className="w-6 h-6 mb-2 text-gray-800" />
-                  <span className="font-bold text-lg text-gray-800">I Need Help</span>
+                  <Asterisk className="w-6 h-6 mb-2" />
+                  <span className="font-bold text-lg">I Need Help</span>
                 </button>
               </div>
             </div>
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                Name (optional)
-              </label>
+              <label className="block text-sm font-bold text-gray-900 mb-2">Name (optional)</label>
               <input
                 type="text"
                 placeholder="Enter your full name"
@@ -66,9 +95,7 @@ export default function CheckInPage() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                Phone (optional)
-              </label>
+              <label className="block text-sm font-bold text-gray-900 mb-2">Phone (optional)</label>
               <input
                 type="tel"
                 placeholder="Enter your phone number"
@@ -78,16 +105,37 @@ export default function CheckInPage() {
 
             {/* Location */}
             <div>
-              <label className="block text-sm font-bold text-gray-900 mb-3">
-                Location
-              </label>
+              <label className="block text-sm font-bold text-gray-900 mb-3">Location</label>
+
               <button
                 type="button"
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 border-[#0072B2] text-[#0072B2] font-semibold hover:bg-blue-50 transition-colors"
+                onClick={handleGps}
+                disabled={gpsStatus === "loading"}
+                className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 font-semibold transition-colors ${
+                  gpsStatus === "success"
+                    ? "border-green-500 text-green-600 bg-green-50"
+                    : gpsStatus === "error"
+                    ? "border-red-400 text-red-600 bg-red-50"
+                    : "border-[#0072B2] text-[#0072B2] hover:bg-blue-50"
+                }`}
               >
-                <Target className="w-5 h-5" />
-                Use my GPS location
+                {gpsStatus === "loading" ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Getting your location...</>
+                ) : gpsStatus === "success" ? (
+                  <><MapPin className="w-5 h-5" /> Location captured! ({coords?.lat.toFixed(4)}, {coords?.lng.toFixed(4)})</>
+                ) : gpsStatus === "error" ? (
+                  <><AlertCircle className="w-5 h-5" /> Try again</>
+                ) : (
+                  <><Target className="w-5 h-5" /> Use my GPS location</>
+                )}
               </button>
+
+              {/* GPS error message */}
+              {gpsError && (
+                <p className="mt-2 text-sm text-red-600 flex items-start gap-1">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> {gpsError}
+                </p>
+              )}
               
               <div className="flex items-center gap-4 my-6">
                 <div className="flex-1 h-px bg-gray-200"></div>
@@ -95,14 +143,21 @@ export default function CheckInPage() {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <select className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none">
-                <option value="">Select district...</option>
-                <option value="kathmandu">Kathmandu</option>
-                <option value="lalitpur">Lalitpur</option>
-                <option value="bhaktapur">Bhaktapur</option>
-                <option value="gorkha">Gorkha</option>
-                <option value="sindhupalchok">Sindhupalchok</option>
-              </select>
+              <div className="relative">
+                <select className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none">
+                  <option value="">Select district...</option>
+                  <option value="kathmandu">Kathmandu</option>
+                  <option value="lalitpur">Lalitpur</option>
+                  <option value="bhaktapur">Bhaktapur</option>
+                  <option value="gorkha">Gorkha</option>
+                  <option value="sindhupalchok">Sindhupalchok</option>
+                  <option value="pokhara">Pokhara</option>
+                  <option value="chitwan">Chitwan</option>
+                  <option value="dhading">Dhading</option>
+                  <option value="nuwakot">Nuwakot</option>
+                </select>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">▼</div>
+              </div>
             </div>
 
             {/* Submit */}
