@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/lib/theme-context";
-import { BottomNav } from "@/components/BottomNav";
+import { ThemeProvider } from "@/frontend/theme-context";
+import { BottomNav } from "@/frontend/BottomNav";
 
 export const metadata: Metadata = {
   title: "Disaster Relief Nepal",

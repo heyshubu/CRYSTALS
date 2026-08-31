@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
-import { fuzzLocation } from "@/lib/fuzz-location";
+import pool from "@/backend/db";
+import { fuzzLocation } from "@/backend/fuzz-location";
 
 const VALID_CATEGORIES = ["food", "water", "medical", "shelter", "transport"];
 const VALID_URGENCIES = ["low", "medium", "high"];

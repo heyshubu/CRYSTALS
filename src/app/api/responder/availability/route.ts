@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import pool from "@/backend/db";
 
 /** PATCH /api/responder/availability */
 export async function PATCH(req: NextRequest) {

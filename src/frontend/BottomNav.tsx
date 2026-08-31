@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme, type ThemeName } from "@/lib/theme-context";
+import { useTheme, type ThemeName } from "@/frontend/theme-context";
 import {
   Map,
   ShieldCheck,

@@ -9,22 +9,22 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useTheme } from "@/lib/theme-context";
+import { useTheme } from "@/frontend/theme-context";
 import {
   CATEGORY_CONFIG,
   URGENCY_CONFIG,
   getCategoryColor,
   getUrgencyColor,
-} from "@/lib/map-icons";
-import { FilterChips } from "@/components/FilterChips";
-import { MapLegend } from "@/components/MapLegend";
-import { PinDetailPopup } from "@/components/PinDetailPopup";
+} from "@/frontend/map-icons";
+import { FilterChips } from "@/frontend/FilterChips";
+import { MapLegend } from "@/frontend/MapLegend";
+import { PinDetailPopup } from "@/frontend/PinDetailPopup";
 import type {
   PublicCheckIn,
   PublicNeed,
   PublicShelter,
   NeedCategory,
-} from "@/lib/types";
+} from "@/shared/types";
 import { Wifi, WifiOff } from "lucide-react";
 
 const NEPAL_CENTER: [number, number] = [27.7172, 85.324];
@@ -166,7 +166,7 @@ export default function MapContent() {
           name={"name" in selectedPin.data ? selectedPin.data.name : undefined}
           phone={"phone" in selectedPin.data ? (selectedPin.data as {phone?: string | null}).phone : undefined}
           category={"category" in selectedPin.data ? (selectedPin.data as {category?: NeedCategory}).category : undefined}
-          urgency={"urgency" in selectedPin.data ? (selectedPin.data as {urgency?: import("@/lib/types").NeedUrgency}).urgency : undefined}
+          urgency={"urgency" in selectedPin.data ? (selectedPin.data as {urgency?: import("@/shared/types").NeedUrgency}).urgency : undefined}
           status={"status" in selectedPin.data ? selectedPin.data.status : undefined}
           description={"description" in selectedPin.data ? (selectedPin.data as {description?: string}).description : undefined}
           approxLat={"approx_lat" in selectedPin.data ? selectedPin.data.approx_lat : undefined}

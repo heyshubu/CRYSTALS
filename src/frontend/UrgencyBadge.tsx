@@ -1,8 +1,8 @@
 "use client";
 
-import { useTheme } from "@/lib/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG, getUrgencyColor } from "@/lib/map-icons";
-import type { NeedUrgency, NeedCategory } from "@/lib/types";
+import { useTheme } from "@/frontend/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getUrgencyColor } from "@/frontend/map-icons";
+import type { NeedUrgency, NeedCategory } from "@/shared/types";
 
 /**
  * Urgency badge that always shows both color AND an icon/text label.

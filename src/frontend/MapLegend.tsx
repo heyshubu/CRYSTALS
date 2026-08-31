@@ -1,8 +1,8 @@
 "use client";
 
-import { useTheme } from "@/lib/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
-import type { NeedCategory } from "@/lib/types";
+import { useTheme } from "@/frontend/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/frontend/map-icons";
+import type { NeedCategory } from "@/shared/types";
 
 export function MapLegend() {
   const { theme } = useTheme();

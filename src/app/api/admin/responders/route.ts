@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import pool from "@/backend/db";
 
 function generateCode(skill: string): string {
   const suffix = Math.floor(1000 + Math.random() * 9000);
