@@ -12,7 +12,7 @@ export function Navbar() {
     <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-50">
       <div className="flex items-center gap-2">
         <Link href="/" aria-label="Sanyukta Home">
-          <div className="w-10 h-10 relative">
+          <div className="w-14 h-14 relative">
             <Image
               src="/Logo.jpeg"
               alt="Sanyukta Logo"

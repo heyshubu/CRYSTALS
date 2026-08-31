@@ -16,9 +16,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           
           <div className="flex-1 flex flex-col min-w-0">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-[520px] relative">
-              <div className="absolute top-4 left-4 z-[1000] bg-white/90 px-3 py-1.5 rounded-md shadow-sm text-xs font-bold text-gray-700 tracking-wider">
-                MAP DASHBOARD | NEPAL
-              </div>
               {children}
             </div>
             

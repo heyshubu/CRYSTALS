@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -27,8 +28,10 @@ export default function AdminLayout({
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-50">
-        <Link href="/" className="text-xl font-bold text-gray-900">
-          Sanyukta
+        <Link href="/" aria-label="Sanyukta Home">
+          <div className="w-14 h-14 relative">
+            <Image src="/Logo.jpeg" alt="Sanyukta Logo" fill className="object-contain" />
+          </div>
         </Link>
         <div className="hidden md:flex items-center gap-8 font-medium text-sm text-gray-600">
           <Link href="/" className="hover:text-[#0072B2] transition-colors pb-1">

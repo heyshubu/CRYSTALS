@@ -1,17 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MainLayout } from "@/frontend/layouts/MainLayout";
+import { MainLayout } from "@/components/layouts/MainLayout";
 import {
   Search,
   Home,
   BriefcaseMedical,
   Phone,
   MapPin,
-  AlertTriangle,
-  Droplet,
-  Utensils,
-  Package,
 } from "lucide-react";
 
 interface ResourceCard {
@@ -97,13 +93,6 @@ const RESOURCES: ResourceCard[] = [
   },
 ];
 
-const CATEGORY_FILTERS = [
-  { key: "all", label: "All", icon: Package },
-  { key: "shelter", label: "Shelters", icon: Home },
-  { key: "medical", label: "Medical", icon: BriefcaseMedical },
-  { key: "supply", label: "Food & Supplies", icon: Utensils },
-];
-
 function getCapacityPercent(used: number, total: number) {
   return Math.round((used / total) * 100);
 }
@@ -121,8 +110,6 @@ function getCapacityTextColor(percent: number) {
 
 export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
-
   const filtered = RESOURCES.filter((r) => {
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -130,9 +117,7 @@ export default function ResourcesPage() {
       r.items?.some((item) =>
         item.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    const matchesFilter =
-      activeFilter === "all" || r.type === activeFilter;
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   });
 
   function handleGetDirections(lat?: number, lng?: number) {
@@ -176,27 +161,6 @@ export default function ResourcesPage() {
               className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent text-base"
             />
           </div>
-        </div>
-
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {CATEGORY_FILTERS.map((f) => {
-            const Icon = f.icon;
-            return (
-              <button
-                key={f.key}
-                onClick={() => setActiveFilter(f.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                  activeFilter === f.key
-                    ? "bg-[#0072B2] text-white border-[#0072B2]"
-                    : "bg-white text-gray-600 border-gray-300 hover:border-[#0072B2]"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {f.label}
-              </button>
-            );
-          })}
         </div>
 
         {/* Results Count */}
