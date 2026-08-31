@@ -1,38 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { Utensils, Droplet, Home, BriefcaseMedical, TriangleAlert, Check } from "lucide-react";
+import { Utensils, Droplet, Home, BriefcaseMedical, TriangleAlert } from "lucide-react";
+import { useFilters } from "@/lib/filter-context";
 
 export function Sidebar() {
-  const [urgency, setUrgency] = useState<"high" | "medium" | "low">("high");
-  const [resource, setResource] = useState<"food" | "water" | "shelter" | "medical" | null>(null);
+  const { urgency, setUrgency, resource, setResource } = useFilters();
 
   return (
-    <aside className="w-80 flex flex-col gap-6">
+    <aside className="w-80 flex-shrink-0 flex flex-col gap-6">
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Filters</h2>
 
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">Urgency Level</h3>
           <div className="flex flex-col gap-3">
+            {/* High Priority */}
             <label className="flex items-center gap-3 cursor-pointer group" onClick={() => setUrgency('high')}>
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${urgency === 'high' ? 'bg-yellow-400' : 'bg-gray-100 border border-gray-300 group-hover:border-yellow-400'}`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border-2 ${urgency === 'high' ? 'bg-yellow-400 border-yellow-400' : 'bg-white border-gray-300 group-hover:border-yellow-400'}`}>
                 {urgency === 'high' && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
+              <span className="w-3 h-3 rounded-full bg-yellow-400 shrink-0"></span>
               <span className="text-sm font-medium text-gray-800">High Priority</span>
             </label>
 
+            {/* Medium Priority */}
             <label className="flex items-center gap-3 cursor-pointer group" onClick={() => setUrgency('medium')}>
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${urgency === 'medium' ? 'bg-[#0072B2]' : 'bg-gray-100 border border-gray-300 group-hover:border-[#0072B2]'}`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border-2 ${urgency === 'medium' ? 'bg-[#0072B2] border-[#0072B2]' : 'bg-white border-gray-300 group-hover:border-[#0072B2]'}`}>
                 {urgency === 'medium' && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
+              <span className="w-3 h-3 rounded-full bg-[#0072B2] shrink-0"></span>
               <span className="text-sm font-medium text-gray-800">Medium Priority</span>
             </label>
 
+            {/* Low Priority */}
             <label className="flex items-center gap-3 cursor-pointer group" onClick={() => setUrgency('low')}>
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${urgency === 'low' ? 'bg-gray-500' : 'bg-white border border-gray-300 group-hover:border-gray-500'}`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border-2 ${urgency === 'low' ? 'bg-gray-500 border-gray-500' : 'bg-white border-gray-300 group-hover:border-gray-500'}`}>
                 {urgency === 'low' && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
+              <span className="w-3 h-3 rounded-full bg-gray-500 shrink-0"></span>
               <span className="text-sm font-medium text-gray-800">Low Priority</span>
             </label>
           </div>
@@ -41,46 +46,24 @@ export function Sidebar() {
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-4">Resource Type</h3>
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setResource(resource === 'food' ? null : 'food')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resource === 'food' 
-                  ? 'bg-[#c57199] text-white border-[#c57199]' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
-              }`}
-            >
-              <Utensils className="w-4 h-4" /> Food
-            </button>
-            <button
-              onClick={() => setResource(resource === 'water' ? null : 'water')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resource === 'water' 
-                  ? 'bg-[#c57199] text-white border-[#c57199]' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
-              }`}
-            >
-              <Droplet className="w-4 h-4" /> Water
-            </button>
-            <button
-              onClick={() => setResource(resource === 'shelter' ? null : 'shelter')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resource === 'shelter' 
-                  ? 'bg-[#c57199] text-white border-[#c57199]' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
-              }`}
-            >
-              <Home className="w-4 h-4" /> Shelter
-            </button>
-            <button
-              onClick={() => setResource(resource === 'medical' ? null : 'medical')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resource === 'medical' 
-                  ? 'bg-[#c57199] text-white border-[#c57199]' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
-              }`}
-            >
-              <BriefcaseMedical className="w-4 h-4" /> Medical
-            </button>
+            {[
+              { key: 'food', label: 'Food', Icon: Utensils },
+              { key: 'water', label: 'Water', Icon: Droplet },
+              { key: 'shelter', label: 'Shelter', Icon: Home },
+              { key: 'medical', label: 'Medical', Icon: BriefcaseMedical },
+            ].map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                onClick={() => setResource(resource === key as typeof resource ? null : key as typeof resource)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  resource === key
+                    ? 'bg-[#c57199] text-white border-[#c57199]'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
+                }`}
+              >
+                <Icon className="w-4 h-4" /> {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
