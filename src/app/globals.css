@@ -1,6 +1,6 @@
-@import "tailwindcss";
 @import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.css");
 @import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.css");
+@import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════
    THEME CSS VARIABLES — 5 color vision types
