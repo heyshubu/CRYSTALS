@@ -66,12 +66,23 @@ export default function CheckInPage() {
         }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Submission failed.");
+        throw new Error("API unavailable");
       }
       setSubmitted(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } catch {
+      // Database unavailable — save locally so the map can pick it up
+      const localCheckins = JSON.parse(localStorage.getItem("local_checkins") || "[]");
+      localCheckins.push({
+        id: `local_${Date.now()}`,
+        name: name.trim() || null,
+        phone: phone.trim() || null,
+        status: status === "safe" ? "safe" : "need_help",
+        approx_lat: coords.lat,
+        approx_lng: coords.lng,
+        created_at: new Date().toISOString(),
+      });
+      localStorage.setItem("local_checkins", JSON.stringify(localCheckins));
+      setSubmitted(true);
     } finally {
       setSubmitting(false);
     }

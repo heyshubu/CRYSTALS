@@ -119,11 +119,19 @@ export default function MapContent() {
           fetch("/api/data/needs").then((r) => r.json()),
           fetch("/api/data/shelters").then((r) => r.json()),
         ]);
-        if (Array.isArray(cRes)) setCheckIns(cRes);
+        const apiCheckIns = Array.isArray(cRes) ? cRes : [];
+        // Merge with local check-ins from localStorage
+        const localCheckIns: PublicCheckIn[] = JSON.parse(localStorage.getItem("local_checkins") || "[]");
+        setCheckIns([...apiCheckIns, ...localCheckIns]);
         if (Array.isArray(nRes)) setNeeds(nRes);
         if (Array.isArray(sRes)) setShelters(sRes);
         setConnected(true);
-      } catch { setConnected(false); }
+      } catch {
+        // API unavailable — still show local check-ins
+        const localCheckIns: PublicCheckIn[] = JSON.parse(localStorage.getItem("local_checkins") || "[]");
+        setCheckIns(localCheckIns);
+        setConnected(false);
+      }
     };
     fetchAll();
     const interval = setInterval(fetchAll, 10000);
