@@ -44,7 +44,7 @@ export default function HomePage() {
       </div>
 
       {/* Map */}
-      <div className="h-[calc(100vh-4rem)] w-full">
+      <div className="h-[60vh] sm:h-[70vh] w-full">
         <MapContent />
       </div>
     </div>

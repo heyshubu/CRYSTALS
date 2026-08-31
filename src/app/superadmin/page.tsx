@@ -5,19 +5,17 @@ import {
   Users,
   Plus,
   Loader2,
-  LogOut,
   Sparkles,
-  Hand,
   CheckCircle2,
   Building2,
   Package,
-  ChevronDown,
-  ChevronUp,
   Edit3,
   Trash2,
   Key,
   Copy,
   AlertCircle,
+  MapPin,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/hooks/use-session";
@@ -51,7 +49,7 @@ export default function SuperadminPage() {
   const [loading, setLoading] = useState(true);
 
   // UI state
-  const [activeTab, setActiveTab] = useState<"roster" | "needs" | "inventory">("roster");
+  const [activeTab, setActiveTab] = useState<"roster" | "needs" | "inventory" | "shelters">("roster");
   const [showAddResponder, setShowAddResponder] = useState(false);
   const [newResp, setNewResp] = useState({ name: "", phone: "", skill: "food" as NeedCategory, coverage: "" });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -66,6 +64,29 @@ export default function SuperadminPage() {
   const [matchSuggestions, setMatchSuggestions] = useState<
     Record<string, Responder | null>
   >({});
+
+  // Shelter creation state
+  const [showAddShelter, setShowAddShelter] = useState(false);
+  const [newShelter, setNewShelter] = useState({ name: "", lat: 0, lng: 0, capacity: 50 });
+
+  // ── Shelter actions
+  const addShelter = async () => {
+    setActionLoading("add-shelter");
+    const res = await fetch("/api/data/shelters", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newShelter),
+    });
+    const data = await res.json();
+    if (res.ok && data.shelter) {
+      setShelters((prev) => [...prev, data.shelter].sort((a, b) => a.name.localeCompare(b.name)));
+      setShowAddShelter(false);
+      setNewShelter({ name: "", lat: 0, lng: 0, capacity: 50 });
+    } else {
+      alert(data.error || "Failed to create shelter.");
+    }
+    setActionLoading(null);
+  };
 
   // ── Fetch data ─────────────────────────────────────────────
   useEffect(() => {
@@ -246,6 +267,7 @@ export default function SuperadminPage() {
         {[
           { key: "roster" as const, label: "Responders", icon: Users, count: responders.length },
           { key: "needs" as const, label: "Needs", icon: AlertCircle, count: unassignedNeeds.length },
+          { key: "shelters" as const, label: "Shelters", icon: Building2, count: shelters.length },
           { key: "inventory" as const, label: "Inventory", icon: Package },
         ].map((tab) => (
           <button
@@ -464,6 +486,108 @@ export default function SuperadminPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── SHELTERS TAB ───────────────────────────── */}
+          {activeTab === "shelters" && (
+            <div>
+              <button
+                onClick={() => setShowAddShelter(!showAddShelter)}
+                className="w-full mb-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create Shelter
+              </button>
+
+              {showAddShelter && (
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
+                  <h3 className="font-semibold mb-3 text-sm">New Shelter</h3>
+                  <input
+                    type="text"
+                    value={newShelter.name}
+                    onChange={(e) => setNewShelter({ ...newShelter, name: e.target.value })}
+                    placeholder="Shelter name *"
+                    className="w-full px-3 py-2 border rounded-lg text-sm mb-2"
+                  />
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="number"
+                      step="any"
+                      value={newShelter.lat || ""}
+                      onChange={(e) => setNewShelter({ ...newShelter, lat: parseFloat(e.target.value) || 0 })}
+                      placeholder="Latitude *"
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                    <input
+                      type="number"
+                      step="any"
+                      value={newShelter.lng || ""}
+                      onChange={(e) => setNewShelter({ ...newShelter, lng: parseFloat(e.target.value) || 0 })}
+                      placeholder="Longitude *"
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    value={newShelter.capacity}
+                    onChange={(e) => setNewShelter({ ...newShelter, capacity: parseInt(e.target.value) || 0 })}
+                    min={1}
+                    placeholder="Capacity *"
+                    className="w-full px-3 py-2 border rounded-lg text-sm mb-3"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={addShelter}
+                      disabled={actionLoading === "add-shelter" || !newShelter.name || !newShelter.capacity}
+                      className="flex-1 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                    >
+                      {actionLoading === "add-shelter" ? <Loader2 className="inline w-4 h-4 animate-spin" /> : "Create"}
+                    </button>
+                    <button
+                      onClick={() => setShowAddShelter(false)}
+                      className="px-4 py-2 text-gray-500 text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Shelter list */}
+              <div className="space-y-3">
+                {shelters.map((s) => (
+                  <div key={s.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-purple-600" />
+                        <h3 className="font-semibold text-sm text-gray-900">{s.name}</h3>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {s.current_occupancy}/{s.capacity} ({Math.round((s.current_occupancy / s.capacity) * 100)}%)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <MapPin className="w-3 h-3" />
+                      {s.exact_lat.toFixed(4)}, {s.exact_lng.toFixed(4)}
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2 mt-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          s.current_occupancy / s.capacity >= 0.9 ? "bg-red-500" : s.current_occupancy / s.capacity >= 0.7 ? "bg-orange-500" : "bg-green-500"
+                        }`}
+                        style={{ width: `${Math.min(100, Math.round((s.current_occupancy / s.capacity) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {shelters.length === 0 && (
+                  <div className="text-center py-12 text-gray-400">
+                    <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p>No shelters yet. Create one above.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

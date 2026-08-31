@@ -66,10 +66,12 @@ export function OccupancyBar({ current, capacity }: { current: number; capacity:
   const pct = capacity > 0 ? Math.round((current / capacity) * 100) : 0;
 
   // Theme-aware bar colors
-  const barColors = {
-    default: pct >= 90 ? "#ef4444" : pct >= 70 ? "#f97316" : "#22c55e",
-    colorblind: pct >= 90 ? "#cc3311" : pct >= 70 ? "#ee7733" : "#009988",
-    "high-contrast": pct >= 90 ? "#ff0000" : pct >= 70 ? "#ee6600" : "#008844",
+  const barColors: Record<string, string> = {
+    normal: pct >= 90 ? "#ef4444" : pct >= 70 ? "#f97316" : "#22c55e",
+    deuteranomaly: pct >= 90 ? "#cc3311" : pct >= 70 ? "#ee7733" : "#009988",
+    protanomaly: pct >= 90 ? "#994400" : pct >= 70 ? "#dd6633" : "#009988",
+    deuteranopia: pct >= 90 ? "#cc3311" : pct >= 70 ? "#ee8833" : "#00aacc",
+    protanopia: pct >= 90 ? "#333333" : pct >= 70 ? "#ddaa33" : "#00aacc",
   };
 
   return (

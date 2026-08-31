@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/hooks/use-session";
-import { useTheme, type ThemeName } from "@/lib/theme-context";
+import { useTheme, THEMES, type ThemeName } from "@/lib/theme-context";
 import {
   Map,
   ShieldCheck,
@@ -47,11 +47,7 @@ const superadminNavItems = [
   { href: "/first-aid", label: "First Aid", icon: HeartPulse },
 ];
 
-const THEMES: { value: ThemeName; label: string; icon: string }[] = [
-  { value: "default", label: "Default", icon: "🎨" },
-  { value: "colorblind", label: "Colorblind-safe", icon: "🔵" },
-  { value: "high-contrast", label: "High contrast", icon: "◐" },
-];
+
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -77,13 +73,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  const cycleTheme = () => {
-    const idx = THEMES.findIndex((t) => t.value === theme);
-    const next = THEMES[(idx + 1) % THEMES.length];
-    setTheme(next.value);
+  const themeIcons: Record<string, string> = {
+    normal: "👁️",
+    deuteranomaly: "🟢",
+    protanomaly: "🔴",
+    deuteranopia: "🔵",
+    protanopia: "🟤",
   };
-
-  const currentTheme = THEMES.find((t) => t.value === theme);
+  const currentThemeLabel = THEMES.find((t) => t.value === theme)?.label || "Normal";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -149,13 +146,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
 
               {/* Theme toggle */}
-              <button
-                onClick={cycleTheme}
-                title={`Theme: ${currentTheme?.label}`}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition"
-              >
-                <Palette className="w-4 h-4" />
-              </button>
+              {/* Theme dropdown */}
+              <div className="relative group">
+                <button
+                  title={`Color vision: ${currentThemeLabel}`}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition flex items-center gap-1"
+                >
+                  <Palette className="w-4 h-4" />
+                  <span className="text-[10px] hidden sm:inline">{themeIcons[theme] || "👁️"}</span>
+                </button>
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <p className="px-3 py-1.5 text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Color Vision Type</p>
+                  {THEMES.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => setTheme(t.value)}
+                      className={`w-full text-left px-3 py-2 text-sm flex items-center gap-3 transition ${
+                        theme === t.value ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="text-base">{themeIcons[t.value]}</span>
+                      <div>
+                        <span className="block text-sm">{t.label}</span>
+                        <span className="block text-[10px] text-gray-400">{t.description}</span>
+                      </div>
+                      {theme === t.value && <span className="ml-auto text-blue-600 text-xs">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Public: Login button */}
               {isPublic && (

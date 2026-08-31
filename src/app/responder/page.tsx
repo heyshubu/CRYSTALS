@@ -144,9 +144,9 @@ export default function ResponderPage() {
 
   // ── Availability colors ────────────────────────────────────
   const availColors: Record<string, Record<string, string>> = {
-    available: { default: "#22c55e", colorblind: "#009988", "high-contrast": "#008844" },
-    busy:      { default: "#f97316", colorblind: "#ee7733", "high-contrast": "#ee6600" },
-    offline:   { default: "#6b7280", colorblind: "#555555", "high-contrast": "#333333" },
+    available: { normal: "#22c55e", deuteranomaly: "#009988", protanomaly: "#009988", deuteranopia: "#00aacc", protanopia: "#00aacc" },
+    busy:      { normal: "#f97316", deuteranomaly: "#ee7733", protanomaly: "#dd6633", deuteranopia: "#ee8833", protanopia: "#ddaa33" },
+    offline:   { normal: "#6b7280", deuteranomaly: "#555555", protanomaly: "#555555", deuteranopia: "#444444", protanopia: "#555555" },
   };
 
   // ── Main dashboard ─────────────────────────────────────────

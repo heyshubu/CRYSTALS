@@ -14,8 +14,13 @@ export async function GET(req: NextRequest) {
   }
   query += " ORDER BY item_name";
 
-  const { rows } = await pool.query(query, params);
-  return NextResponse.json({ items: rows });
+  try {
+    const { rows } = await pool.query(query, params);
+    return NextResponse.json({ items: rows });
+  } catch (err) {
+    console.error("inventory GET error:", err);
+    return NextResponse.json({ items: [] });
+  }
 }
 
 /** POST /api/admin/inventory — upsert item */
