@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/hooks/use-session";
 import { useTheme, THEMES, type ThemeName } from "@/lib/theme-context";
+import { useFont } from "@/lib/font-context";
 import {
   Map,
   ShieldCheck,
@@ -13,6 +14,7 @@ import {
   HeartPulse,
   LogIn,
   Palette,
+  Type,
   LogOut,
   Home,
   Users,
@@ -53,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { session, mounted, logout } = useSession();
   const { theme, setTheme } = useTheme();
+  const { font, setFont } = useFont();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isLoggedIn = mounted && session;
@@ -175,6 +178,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               </div>
+
+              {/* Font toggle */}
+              <button
+                onClick={() => setFont(font === "dyslexia-friendly" ? "default" : "dyslexia-friendly")}
+                title={font === "dyslexia-friendly" ? "Switch to standard font" : "Switch to dyslexia-friendly font"}
+                className={`p-2 rounded-lg transition flex items-center gap-1 ${
+                  font === "dyslexia-friendly"
+                    ? "bg-purple-50 text-purple-600"
+                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <Type className="w-4 h-4" />
+                <span className="text-[10px] hidden sm:inline">{font === "dyslexia-friendly" ? "ABC" : "Aa"}</span>
+              </button>
 
               {/* Public: Login button */}
               {isPublic && (

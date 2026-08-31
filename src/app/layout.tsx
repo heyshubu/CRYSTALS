@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-context";
+import { FontProvider } from "@/lib/font-context";
 import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-gray-50" suppressHydrationWarning>
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
+          <FontProvider>
+            <AppShell>{children}</AppShell>
+          </FontProvider>
         </ThemeProvider>
       </body>
     </html>

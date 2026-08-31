@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.css");
+@import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.css");
 
 /* Leaflet map needs explicit height on its container */
 .leaflet-container {
@@ -40,4 +42,33 @@ main {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Dyslexia-Friendly Font (OpenDyslexic)
+   Applied when .dyslexia-font class is on <html>
+   ══════════════════════════════════════════════════════════════ */
+.dyslexia-font,
+.dyslexia-font * {
+  font-family: "OpenDyslexic", "Comic Sans MS", "Comic Neue", sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.15em;
+  line-height: 1.8 !important;
+}
+
+/* Ensure inputs and buttons also get the font */
+.dyslexia-font input,
+.dyslexia-font textarea,
+.dyslexia-font select,
+.dyslexia-font button {
+  font-family: "OpenDyslexic", "Comic Sans MS", "Comic Neue", sans-serif !important;
+}
+
+/* Increase text weight slightly for better readability */
+.dyslexia-font p,
+.dyslexia-font span,
+.dyslexia-font li,
+.dyslexia-font td,
+.dyslexia-font th {
+  font-weight: 500;
 }
