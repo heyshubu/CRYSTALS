@@ -3,12 +3,19 @@
 import { useState } from "react";
 import { FormLayout } from "@/components/layouts/FormLayout";
 import { CheckCircle2, Asterisk, Target, Send, Lock, MapPin, Loader2, AlertCircle } from "lucide-react";
+import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/lib/nepal-districts";
 
 export default function CheckInPage() {
   const [status, setStatus] = useState<"safe" | "help">("safe");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [district, setDistrict] = useState("");
   const [gpsStatus, setGpsStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function handleGps() {
     if (!navigator.geolocation) {
@@ -37,6 +44,71 @@ export default function CheckInPage() {
     );
   }
 
+  const handleSubmit = async () => {
+    setSubmitError(null);
+
+    let lat: number, lng: number;
+    if (gpsStatus === "success" && coords) {
+      lat = coords.lat;
+      lng = coords.lng;
+    } else if (district) {
+      const d = DISTRICT_COORDS[district];
+      if (!d) { setSubmitError("District not found."); return; }
+      lat = d.lat;
+      lng = d.lng;
+    } else {
+      setSubmitError("Please select a location (GPS or district).");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          phone: phone.trim() || undefined,
+          status: status === "safe" ? "safe" : "need_help",
+          lat,
+          lng,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Submission failed.");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <FormLayout>
+        <div className="w-full max-w-xl flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {status === "safe" ? "You're marked as safe!" : "Help request noted."}
+          </h1>
+          <p className="text-gray-500 mb-6">Your check-in has been recorded anonymously.</p>
+          <button
+            onClick={() => {
+              setSubmitted(false); setName(""); setPhone(""); setDistrict("");
+              setCoords(null); setGpsStatus("idle"); setStatus("safe");
+            }}
+            className="px-6 py-3 bg-[#0072B2] text-white rounded-lg font-semibold hover:opacity-90"
+          >
+            Submit another check-in
+          </button>
+        </div>
+      </FormLayout>
+    );
+  }
+
   return (
     <FormLayout>
       <div className="w-full max-w-xl flex flex-col items-center">
@@ -46,7 +118,7 @@ export default function CheckInPage() {
         </p>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full mb-6">
-          <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+          <div className="flex flex-col gap-6">
             
             {/* Current Status */}
             <div>
@@ -88,6 +160,8 @@ export default function CheckInPage() {
               <label className="block text-sm font-bold text-gray-900 mb-2">Name (optional)</label>
               <input
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent transition-shadow placeholder:text-gray-400"
               />
@@ -98,6 +172,8 @@ export default function CheckInPage() {
               <label className="block text-sm font-bold text-gray-900 mb-2">Phone (optional)</label>
               <input
                 type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your phone number"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent transition-shadow placeholder:text-gray-400"
               />
@@ -144,32 +220,43 @@ export default function CheckInPage() {
               </div>
 
               <div className="relative">
-                <select className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none">
+                <select
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none"
+                >
                   <option value="">Select district...</option>
-                  <option value="kathmandu">Kathmandu</option>
-                  <option value="lalitpur">Lalitpur</option>
-                  <option value="bhaktapur">Bhaktapur</option>
-                  <option value="gorkha">Gorkha</option>
-                  <option value="sindhupalchok">Sindhupalchok</option>
-                  <option value="pokhara">Pokhara</option>
-                  <option value="chitwan">Chitwan</option>
-                  <option value="dhading">Dhading</option>
-                  <option value="nuwakot">Nuwakot</option>
+                  {UNIQUE_DISTRICTS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
                 </select>
                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">▼</div>
               </div>
             </div>
 
+            {/* Error */}
+            {submitError && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {submitError}
+              </div>
+            )}
+
             {/* Submit */}
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
               style={{ backgroundColor: '#0072B2' }}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-lg text-white font-bold text-lg transition-opacity hover:opacity-90"
+              className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-lg text-white font-bold text-lg transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              Submit Check-In
-              <Send className="w-5 h-5" />
+              {submitting ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Submitting...</>
+              ) : (
+                <><Send className="w-5 h-5" /> Submit Check-In</>
+              )}
             </button>
-          </form>
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-2 text-center text-gray-500 max-w-sm">
