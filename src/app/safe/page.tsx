@@ -139,7 +139,7 @@ export default function SafePage() {
     <div className="p-4 max-w-lg mx-auto">
       <div className="text-center mb-8">
         <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center mx-auto mb-4">
-          <ShieldCheck className="w-8 h-8 text-green-600" />
+          <ShieldCheck className="w-8 h-8 text-success" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">I&apos;m Safe</h1>
         <p className="text-gray-500 text-sm">
@@ -215,7 +215,7 @@ export default function SafePage() {
             onClick={() => handleLocationModeChange("gps")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium border transition ${
               locationMode === "gps"
-                ? "border-blue-500 bg-blue-50 text-blue-700"
+                ? "border-blue-500 bg-primary-light text-primary"
                 : "border-gray-200 text-gray-600 hover:border-gray-300"
             }`}
           >
@@ -230,7 +230,7 @@ export default function SafePage() {
             onClick={() => setLocationMode("district")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium border transition ${
               locationMode === "district"
-                ? "border-blue-500 bg-blue-50 text-blue-700"
+                ? "border-blue-500 bg-primary-light text-primary"
                 : "border-gray-200 text-gray-600 hover:border-gray-300"
             }`}
           >
@@ -241,12 +241,12 @@ export default function SafePage() {
         {locationMode === "gps" && (
           <div>
             {gpsCoords ? (
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-success">
                 ✅ GPS location acquired (
                 {gpsCoords.lat.toFixed(4)}, {gpsCoords.lng.toFixed(4)})
               </p>
             ) : gpsError ? (
-              <p className="text-sm text-red-500">{gpsError}</p>
+              <p className="text-sm text-danger">{gpsError}</p>
             ) : (
               <p className="text-sm text-gray-500">
                 {gpsLoading ? "Acquiring location..." : "Tap GPS to get your location"}

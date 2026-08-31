@@ -162,7 +162,7 @@ export default function ReportEmergencyPage() {
           {/* Emergency Type */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-900 mb-2">
-              Emergency Type <span className="text-red-500">*</span>
+              Emergency Type <span className="text-danger">*</span>
             </label>
             <div className="relative">
               <select
@@ -186,7 +186,7 @@ export default function ReportEmergencyPage() {
           {/* Precise Location */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-900 mb-2">
-              Precise Location <span className="text-red-500">*</span>
+              Precise Location <span className="text-danger">*</span>
             </label>
             <div className="flex gap-2">
               <input
@@ -202,9 +202,9 @@ export default function ReportEmergencyPage() {
                 disabled={gpsStatus === "loading"}
                 className={`px-4 py-3 rounded-lg border-2 transition-colors ${
                   gpsStatus === "success"
-                    ? "border-green-500 text-green-600 bg-green-50"
+                    ? "border-green-500 text-success bg-green-50"
                     : gpsStatus === "error"
-                    ? "border-red-400 text-red-600 bg-red-50"
+                    ? "border-red-400 text-danger bg-red-50"
                     : "border-gray-300 text-gray-600 hover:border-[#0072B2] hover:text-[#0072B2]"
                 }`}
               >
@@ -216,7 +216,7 @@ export default function ReportEmergencyPage() {
               </button>
             </div>
             {gpsError && (
-              <p className="mt-2 text-sm text-red-600 flex items-start gap-1">
+              <p className="mt-2 text-sm text-danger flex items-start gap-1">
                 <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> {gpsError}
               </p>
             )}

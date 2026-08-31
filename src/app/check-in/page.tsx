@@ -189,9 +189,9 @@ export default function CheckInPage() {
                 disabled={gpsStatus === "loading"}
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 font-semibold transition-colors ${
                   gpsStatus === "success"
-                    ? "border-green-500 text-green-600 bg-green-50"
+                    ? "border-green-500 text-success bg-green-50"
                     : gpsStatus === "error"
-                    ? "border-red-400 text-red-600 bg-red-50"
+                    ? "border-red-400 text-danger bg-red-50"
                     : "border-[#0072B2] text-[#0072B2] hover:bg-blue-50"
                 }`}
               >
@@ -208,7 +208,7 @@ export default function CheckInPage() {
 
               {/* GPS error message */}
               {gpsError && (
-                <p className="mt-2 text-sm text-red-600 flex items-start gap-1">
+                <p className="mt-2 text-sm text-danger flex items-start gap-1">
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" /> {gpsError}
                 </p>
               )}

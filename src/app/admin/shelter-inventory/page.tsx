@@ -266,7 +266,7 @@ export default function ShelterInventoryPage() {
                                 Low Stock
                               </span>
                             ) : (
-                              <span className="text-sm font-medium text-green-600">
+                              <span className="text-sm font-medium text-success">
                                 Adequate
                               </span>
                             )}

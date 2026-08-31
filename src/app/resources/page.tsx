@@ -115,7 +115,7 @@ function getCapacityColor(percent: number) {
 }
 
 function getCapacityTextColor(percent: number) {
-  if (percent >= 90) return "text-red-500";
+  if (percent >= 90) return "text-danger";
   return "text-gray-500";
 }
 
@@ -269,7 +269,7 @@ export default function ResourcesPage() {
                       />
                     </div>
                     {isNearCapacity && (
-                      <p className="mt-2 text-sm text-red-500 font-medium">
+                      <p className="mt-2 text-sm text-danger font-medium">
                         Near capacity. Redirecting to alternatives.
                       </p>
                     )}

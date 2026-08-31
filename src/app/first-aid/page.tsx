@@ -26,7 +26,7 @@ export default function FirstAidPage() {
       {/* Header */}
       <div className="text-center mb-6">
         <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-          <HeartPulse className="w-8 h-8 text-red-600" />
+          <HeartPulse className="w-8 h-8 text-danger" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">First-Aid Reference</h1>
         <p className="text-gray-500 text-sm">
@@ -35,7 +35,7 @@ export default function FirstAidPage() {
       </div>
 
       {/* Offline badge */}
-      <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-full mb-6 w-fit">
+      <div className="flex items-center gap-1 text-xs text-success bg-green-50 px-3 py-1.5 rounded-full mb-6 w-fit">
         <WifiOff className="w-3 h-3" />
         Available offline — content is stored in the app
       </div>
@@ -108,7 +108,7 @@ export default function FirstAidPage() {
                         {guide.warnings.map((w, i) => (
                           <li
                             key={i}
-                            className="text-xs text-red-600 flex items-start gap-1"
+                            className="text-xs text-danger flex items-start gap-1"
                           >
                             <span>•</span>
                             <span>{w}</span>

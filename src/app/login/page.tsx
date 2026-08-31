@@ -89,7 +89,7 @@ export default function LoginPage() {
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-full max-w-sm text-center">
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-8 h-8 text-green-600" />
+            <Shield className="w-8 h-8 text-success" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-1">
             Already Logged In
@@ -141,7 +141,7 @@ export default function LoginPage() {
           <>
             <div className="text-center mb-8">
               <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
-                <KeyRound className="w-8 h-8 text-blue-600" />
+                <KeyRound className="w-8 h-8 text-primary" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 Sign In
@@ -159,7 +159,7 @@ export default function LoginPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition">
-                    <Shield className="w-6 h-6 text-purple-600" />
+                    <Shield className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-gray-900">Coordinator</h3>
@@ -178,7 +178,7 @@ export default function LoginPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition">
-                    <Users className="w-6 h-6 text-blue-600" />
+                    <Users className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-gray-900">Responder</h3>
@@ -223,9 +223,9 @@ export default function LoginPage() {
                 }`}
               >
                 {selectedRole === "superadmin" ? (
-                  <Lock className="w-8 h-8 text-purple-600" />
+                  <Lock className="w-8 h-8 text-primary" />
                 ) : (
-                  <Users className="w-8 h-8 text-blue-600" />
+                  <Users className="w-8 h-8 text-primary" />
                 )}
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -259,7 +259,7 @@ export default function LoginPage() {
               />
 
               {error && (
-                <p className="text-red-500 text-sm mt-3 text-center">
+                <p className="text-danger text-sm mt-3 text-center">
                   {error}
                 </p>
               )}

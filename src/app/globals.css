@@ -2,24 +2,299 @@
 @import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.css");
 @import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.css");
 
-/* Leaflet map needs explicit height on its container */
+/* ══════════════════════════════════════════════════════════════
+   THEME CSS VARIABLES — 5 color vision types
+   All UI colors reference these variables.
+   Changing the class on <html> changes everything instantly.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Default: Normal vision */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #eff6ff;
+  --color-primary-border: #bfdbfe;
+
+  --color-success: #16a34a;
+  --color-success-light: #f0fdf4;
+  --color-success-border: #bbf7d0;
+
+  --color-danger: #dc2626;
+  --color-danger-light: #fef2f2;
+  --color-danger-border: #fecaca;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-warning-border: #fde68a;
+
+  --color-orange: #f97316;
+  --color-orange-light: #fff7ed;
+
+  --color-purple: #7c3aed;
+  --color-purple-light: #f5f3ff;
+  --color-purple-border: #ddd6fe;
+
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  --color-bg: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+}
+
+/* ── Deuteranomaly (reduced green — most common) ────────────── */
+html.deuteranomaly {
+  --color-primary: #0077bb;
+  --color-primary-hover: #005599;
+  --color-primary-light: #e0f0ff;
+  --color-primary-border: #99ccee;
+
+  --color-success: #009988;
+  --color-success-light: #e0f5f0;
+  --color-success-border: #88ccbb;
+
+  --color-danger: #cc3311;
+  --color-danger-light: #fde8e0;
+  --color-danger-border: #f0aa88;
+
+  --color-warning: #ddaa33;
+  --color-warning-light: #fdf5e0;
+  --color-warning-border: #f0d888;
+
+  --color-orange: #ee7733;
+  --color-orange-light: #fef0e0;
+
+  --color-purple: #aa3377;
+  --color-purple-light: #f5e8f0;
+  --color-purple-border: #ddaacc;
+
+  --color-text: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+
+  --color-bg: #f5f5f0;
+  --color-surface: #ffffff;
+  --color-border: #d5d5d0;
+  --color-border-light: #eeeeea;
+}
+
+/* ── Protanomaly (reduced red) ──────────────────────────────── */
+html.protanomaly {
+  --color-primary: #0077bb;
+  --color-primary-hover: #005599;
+  --color-primary-light: #e0f0ff;
+  --color-primary-border: #99ccee;
+
+  --color-success: #009988;
+  --color-success-light: #e0f5f0;
+  --color-success-border: #88ccbb;
+
+  --color-danger: #994400;
+  --color-danger-light: #f5ead8;
+  --color-danger-border: #ccaa77;
+
+  --color-warning: #ccaa33;
+  --color-warning-light: #fdf5e0;
+  --color-warning-border: #e8d888;
+
+  --color-orange: #dd6633;
+  --color-orange-light: #fef0e0;
+
+  --color-purple: #9944aa;
+  --color-purple-light: #f0e0f5;
+  --color-purple-border: #cc99dd;
+
+  --color-text: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+
+  --color-bg: #f5f5f0;
+  --color-surface: #ffffff;
+  --color-border: #d5d5d0;
+  --color-border-light: #eeeeea;
+}
+
+/* ── Deuteranopia (no green cones) ──────────────────────────── */
+html.deuteranopia {
+  --color-primary: #0066cc;
+  --color-primary-hover: #004499;
+  --color-primary-light: #e0ecff;
+  --color-primary-border: #88bbee;
+
+  --color-success: #00aacc;
+  --color-success-light: #e0f2f8;
+  --color-success-border: #88ddee;
+
+  --color-danger: #cc3311;
+  --color-danger-light: #fde8e0;
+  --color-danger-border: #f0aa88;
+
+  --color-warning: #ee8833;
+  --color-warning-light: #fdf0e0;
+  --color-warning-border: #f0cc88;
+
+  --color-orange: #ee8833;
+  --color-orange-light: #fef0e0;
+
+  --color-purple: #aa3377;
+  --color-purple-light: #f5e8f0;
+  --color-purple-border: #ddaacc;
+
+  --color-text: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-border: #ccdde8;
+  --color-border-light: #e8eef5;
+}
+
+/* ── Protanopia (no red cones) ──────────────────────────────── */
+html.protanopia {
+  --color-primary: #0088ee;
+  --color-primary-hover: #0066cc;
+  --color-primary-light: #e0f0ff;
+  --color-primary-border: #88ccee;
+
+  --color-success: #00aacc;
+  --color-success-light: #e0f2f8;
+  --color-success-border: #88ddee;
+
+  --color-danger: #333333;
+  --color-danger-light: #e8e8e8;
+  --color-danger-border: #aaaaaa;
+
+  --color-warning: #ddaa33;
+  --color-warning-light: #fdf5e0;
+  --color-warning-border: #f0d888;
+
+  --color-orange: #ddaa33;
+  --color-orange-light: #fdf5e0;
+
+  --color-purple: #aa3377;
+  --color-purple-light: #f5e8f0;
+  --color-purple-border: #ddaacc;
+
+  --color-text: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+
+  --color-bg: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-border: #ccdde8;
+  --color-border-light: #e8eef5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Apply CSS variables to Tailwind via utility classes
+   ══════════════════════════════════════════════════════════════ */
+
+/* Primary buttons */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  transition: background-color 0.15s;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+}
+
+/* Secondary/outline buttons */
+.btn-outline {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+  transition: background-color 0.15s;
+}
+.btn-outline:hover {
+  background-color: var(--color-primary-light);
+}
+
+/* Success */
+.btn-success {
+  background-color: var(--color-success);
+  color: white;
+}
+.btn-success:hover {
+  opacity: 0.9;
+}
+
+/* Danger */
+.btn-danger {
+  background-color: var(--color-danger);
+  color: white;
+}
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* Warning */
+.btn-warning {
+  background-color: var(--color-warning);
+  color: white;
+}
+
+/* Purple (superadmin) */
+.btn-purple {
+  background-color: var(--color-purple);
+  color: white;
+}
+.btn-purple:hover {
+  opacity: 0.9;
+}
+
+/* Surface and card backgrounds */
+.surface {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+/* Text colors */
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }
+
+/* Background colors */
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-light { background-color: var(--color-primary-light); }
+.bg-success-light { background-color: var(--color-success-light); }
+.bg-danger-light { background-color: var(--color-danger-light); }
+.bg-warning-light { background-color: var(--color-warning-light); }
+.bg-purple-light { background-color: var(--color-purple-light); }
+
+/* Border colors */
+.border-primary { border-color: var(--color-primary-border); }
+.border-success { border-color: var(--color-success-border); }
+.border-danger { border-color: var(--color-danger-border); }
+
+/* ══════════════════════════════════════════════════════════════
+   Leaflet map
+   ══════════════════════════════════════════════════════════════ */
 .leaflet-container {
   height: 100%;
   width: 100%;
   border-radius: 0.75rem;
 }
 
-/* Fix Leaflet default marker icon paths in Next.js */
 .leaflet-default-icon-path {
   background-image: url(/images/marker-icon.png);
 }
 
-/* Mobile safe area for bottom nav */
+/* ══════════════════════════════════════════════════════════════
+   Utilities
+   ══════════════════════════════════════════════════════════════ */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Smooth page transitions */
 main {
   animation: fadeIn 0.15s ease-out;
 }
@@ -29,24 +304,13 @@ main {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
 /* ══════════════════════════════════════════════════════════════
    Dyslexia-Friendly Font (OpenDyslexic)
-   Applied when .dyslexia-font class is on <html>
    ══════════════════════════════════════════════════════════════ */
 .dyslexia-font,
 .dyslexia-font * {
@@ -56,7 +320,6 @@ main {
   line-height: 1.8 !important;
 }
 
-/* Ensure inputs and buttons also get the font */
 .dyslexia-font input,
 .dyslexia-font textarea,
 .dyslexia-font select,
@@ -64,7 +327,6 @@ main {
   font-family: "OpenDyslexic", "Comic Sans MS", "Comic Neue", sans-serif !important;
 }
 
-/* Increase text weight slightly for better readability */
 .dyslexia-font p,
 .dyslexia-font span,
 .dyslexia-font li,

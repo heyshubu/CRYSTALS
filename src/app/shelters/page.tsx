@@ -35,7 +35,7 @@ export default function SheltersPage() {
     <div className="p-4 max-w-lg mx-auto">
       <div className="text-center mb-8">
         <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto mb-4">
-          <Building2 className="w-8 h-8 text-purple-600" />
+          <Building2 className="w-8 h-8 text-primary" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Shelters</h1>
         <p className="text-gray-500 text-sm">Current shelter locations and occupancy.</p>

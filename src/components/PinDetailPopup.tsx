@@ -129,10 +129,10 @@ export function PinDetailPopup({
                   disabled={action.disabled}
                   className={`w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 ${
                     action.variant === "success"
-                      ? "bg-green-600 text-white hover:bg-green-700"
+                      ? "btn-success"
                       : action.variant === "danger"
-                      ? "bg-red-600 text-white hover:bg-red-700"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      ? "btn-danger"
+                      : "btn-primary"
                   }`}
                 >
                   {action.label}

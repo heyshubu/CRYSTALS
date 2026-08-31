@@ -242,22 +242,22 @@ export default function SuperadminPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Coordinator Dashboard</h1>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Responders</p>
-            <p className="text-2xl font-bold text-gray-900">{responders.length}</p>
-            <p className="text-[10px] text-green-600">{availableResponders} available</p>
+          <div className="rounded-xl border p-4" style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Responders</p>
+            <p className="text-2xl font-bold" style={{ color: "var(--color-text)" }}>{responders.length}</p>
+            <p className="text-[10px]" style={{ color: "var(--color-success)" }}>{availableResponders} available</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Open Needs</p>
-            <p className="text-2xl font-bold text-orange-600">{unassignedNeeds.length}</p>
+          <div className="rounded-xl border p-4" style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Open Needs</p>
+            <p className="text-2xl font-bold" style={{ color: "var(--color-orange)" }}>{unassignedNeeds.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Assigned</p>
-            <p className="text-2xl font-bold text-blue-600">{totalAssigned}</p>
+          <div className="rounded-xl border p-4" style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Assigned</p>
+            <p className="text-2xl font-bold" style={{ color: "var(--color-primary)" }}>{totalAssigned}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Shelters</p>
-            <p className="text-2xl font-bold text-purple-600">{shelters.length}</p>
+          <div className="rounded-xl border p-4" style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Shelters</p>
+            <p className="text-2xl font-bold" style={{ color: "var(--color-purple)" }}>{shelters.length}</p>
           </div>
         </div>
       </div>
@@ -273,11 +273,12 @@ export default function SuperadminPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium border transition ${
-              activeTab === tab.key
-                ? "border-purple-500 bg-purple-50 text-purple-700"
-                : "border-gray-200 text-gray-500"
-            }`}
+            className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium border transition"
+            style={{
+              borderColor: activeTab === tab.key ? "var(--color-primary)" : "var(--color-border)",
+              backgroundColor: activeTab === tab.key ? "var(--color-primary-light)" : "transparent",
+              color: activeTab === tab.key ? "var(--color-primary)" : "var(--color-text-secondary)",
+            }}
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
@@ -401,7 +402,7 @@ export default function SuperadminPage() {
                       </code>
                       <button
                         onClick={() => copyCode(r.login_code)}
-                        className="text-xs text-blue-600 hover:underline flex items-center gap-0.5 ml-auto"
+                        className="text-xs text-primary hover:underline flex items-center gap-0.5 ml-auto"
                       >
                         <Copy className="w-3 h-3" />
                         {copiedCode === r.login_code ? "Copied!" : "Copy"}
@@ -444,7 +445,7 @@ export default function SuperadminPage() {
                           <button
                             onClick={() => getSuggestion(need.id)}
                             disabled={actionLoading === `match-${need.id}`}
-                            className="w-full py-2 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-sm font-medium hover:bg-purple-100 flex items-center justify-center gap-2"
+                            className="w-full py-2 bg-primary-light text-primary border border-purple-200 rounded-lg text-sm font-medium hover:bg-purple-100 flex items-center justify-center gap-2"
                           >
                             {actionLoading === `match-${need.id}` ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -560,7 +561,7 @@ export default function SuperadminPage() {
                   <div key={s.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-purple-600" />
+                        <Building2 className="w-5 h-5 text-primary" />
                         <h3 className="font-semibold text-sm text-gray-900">{s.name}</h3>
                       </div>
                       <span className="text-xs text-gray-500">
@@ -632,13 +633,13 @@ export default function SuperadminPage() {
                               unit: item.unit,
                             });
                           }}
-                          className="text-blue-600 hover:underline"
+                          className="text-primary hover:underline"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => deleteItem(item.id)}
-                          className="text-red-500 hover:underline"
+                          className="text-danger hover:underline"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

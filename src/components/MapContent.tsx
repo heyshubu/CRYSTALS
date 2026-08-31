@@ -162,11 +162,11 @@ export default function MapContent() {
     <div className="relative h-full w-full">
       <div className="absolute top-4 right-4 z-[1001]">
         {connected ? (
-          <span className="flex items-center gap-1 text-xs text-green-600 bg-white/90 px-2 py-1 rounded-full shadow">
+          <span className="flex items-center gap-1 text-xs text-success bg-white/90 px-2 py-1 rounded-full shadow">
             <Wifi className="w-3 h-3" /> Live
           </span>
         ) : (
-          <span className="flex items-center gap-1 text-xs text-red-600 bg-white/90 px-2 py-1 rounded-full shadow">
+          <span className="flex items-center gap-1 text-xs text-danger bg-white/90 px-2 py-1 rounded-full shadow">
             <WifiOff className="w-3 h-3" /> Offline
           </span>
         )}

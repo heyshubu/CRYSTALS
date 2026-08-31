@@ -24,6 +24,15 @@ export const THEMES: { value: ThemeName; label: string; description: string }[] 
   { value: "protanopia", label: "Protanopia", description: "No red cones — reds look black/brown" },
 ];
 
+// CSS class names for each theme on <html>
+const THEME_CLASSES: Record<ThemeName, string> = {
+  normal: "",
+  deuteranomaly: "deuteranomaly",
+  protanomaly: "protanomaly",
+  deuteranopia: "deuteranopia",
+  protanopia: "protanopia",
+};
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeName>("normal");
 
@@ -36,6 +45,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       }
     } catch { /* ignore */ }
   }, []);
+
+  // Apply CSS class to <html> for CSS variable cascading
+  useEffect(() => {
+    const root = document.documentElement;
+    // Remove all theme classes
+    root.classList.remove("deuteranomaly", "protanomaly", "deuteranopia", "protanopia");
+    // Add current theme class (normal = no class needed)
+    const cls = THEME_CLASSES[theme];
+    if (cls) root.classList.add(cls);
+  }, [theme]);
 
   const setTheme = useCallback((t: ThemeName) => {
     setThemeState(t);

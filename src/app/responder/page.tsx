@@ -143,10 +143,10 @@ export default function ResponderPage() {
   const unassignedNeeds = needs.filter((n) => !n.is_assigned && n.status === "open");
 
   // ── Availability colors ────────────────────────────────────
-  const availColors: Record<string, Record<string, string>> = {
-    available: { normal: "#22c55e", deuteranomaly: "#009988", protanomaly: "#009988", deuteranopia: "#00aacc", protanopia: "#00aacc" },
-    busy:      { normal: "#f97316", deuteranomaly: "#ee7733", protanomaly: "#dd6633", deuteranopia: "#ee8833", protanopia: "#ddaa33" },
-    offline:   { normal: "#6b7280", deuteranomaly: "#555555", protanomaly: "#555555", deuteranopia: "#444444", protanopia: "#555555" },
+  const availColors: Record<string, string> = {
+    available: "var(--color-success)",
+    busy: "var(--color-orange)",
+    offline: "var(--color-text-muted)",
   };
 
   // ── Main dashboard ─────────────────────────────────────────
@@ -155,23 +155,22 @@ export default function ResponderPage() {
       {/* Availability toggle */}
       <div className="flex items-center gap-4 mb-6">
         <h1 className="text-xl font-bold text-gray-900">
-          Welcome, <span className="text-blue-600">{responder?.name}</span>
-        </h1>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
-          {["available", "busy", "offline"].map((a) => {
-            const c = availColors[a][theme];
-            return (
-              <button key={a} onClick={() => toggleAvailability(a)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  availability === a ? "text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
-                }`}
-                style={availability === a ? { backgroundColor: c } : undefined}
-              >
-                {a.charAt(0).toUpperCase() + a.slice(1)}
-              </button>
-            );
-          })}
-        </div>
+          Welcome, <span className="text-primary">{responder?.name}</span>
+        </h1>            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: "var(--color-border-light)" }}>
+              {["available", "busy", "offline"].map((a) => (
+                <button
+                  key={a}
+                  onClick={() => toggleAvailability(a)}
+                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                  style={{
+                    backgroundColor: availability === a ? availColors[a] : "transparent",
+                    color: availability === a ? "white" : "var(--color-text-muted)",
+                  }}
+                >
+                  {a.charAt(0).toUpperCase() + a.slice(1)}
+                </button>
+              ))}
+            </div>
       </div>
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div>
@@ -198,7 +197,7 @@ export default function ResponderPage() {
                     </div>
                   </div>
                   <button onClick={() => markComplete(assignedTask.id)} disabled={actionLoading === assignedTask.id}
-                    className="flex-shrink-0 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 text-sm">
+                    className="flex-shrink-0 px-5 py-2.5 btn-primary rounded-lg font-semibold disabled:opacity-50 flex items-center gap-2 text-sm">
                     {actionLoading === assignedTask.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     Mark Complete
                   </button>
@@ -213,7 +212,7 @@ export default function ResponderPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-bold text-gray-900">Needs List</h2>
                   <button onClick={() => setShowMap(!showMap)}
-                    className="text-sm text-blue-600 hover:underline font-medium">
+                    className="text-sm text-primary hover:underline font-medium">
                     {showMap ? "Hide Map" : "View Map"}
                   </button>
                 </div>
@@ -251,7 +250,7 @@ export default function ResponderPage() {
                           </div>
                           <button onClick={() => pickUpNeed(need.id)}
                             disabled={actionLoading === need.id || !!assignedTask}
-                            className="flex-shrink-0 px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 disabled:opacity-50 disabled:border-gray-300 disabled:text-gray-400 transition-colors">
+                            className="flex-shrink-0 px-4 py-2 btn-outline rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors">
                             {actionLoading === need.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Pick Up"}
                           </button>
                         </div>
@@ -265,7 +264,7 @@ export default function ResponderPage() {
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <Building2 className="w-5 h-5 text-blue-600" />
+                    <Building2 className="w-5 h-5 text-primary" />
                     <h2 className="text-lg font-bold text-gray-900">Shelter Occupancy Editor</h2>
                   </div>
 
@@ -279,7 +278,7 @@ export default function ResponderPage() {
                         <div key={shelter.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="font-semibold text-gray-900 text-sm">{shelter.name}</h3>
-                            <span className={`text-xs font-semibold ${isOver90 ? "text-red-600" : "text-gray-500"}`}>
+                            <span className={`text-xs font-semibold ${isOver90 ? "text-danger" : "text-gray-500"}`}>
                               {pct}% Full
                             </span>
                           </div>
@@ -298,7 +297,7 @@ export default function ResponderPage() {
                   </div>
 
                   <button onClick={saveAllShelters} disabled={savingShelters}
-                    className="w-full mt-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 text-sm">
+                    className="w-full mt-5 py-2.5 btn-primary rounded-lg font-semibold disabled:opacity-50 flex items-center justify-center gap-2 text-sm">
                     {savingShelters ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     Save Occupancy Data
                   </button>
