@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { MainLayout } from "@/frontend/layouts/MainLayout";
+import { MainLayout } from "@/components/layouts/MainLayout";
 
 const MapContent = dynamic(() => import("@/components/MapContent"), {
   ssr: false,

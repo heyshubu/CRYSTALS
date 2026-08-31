@@ -1,8 +1,8 @@
 import React from "react";
-import { Navbar } from "../components/Navbar";
-import { Sidebar } from "../components/Sidebar";
-import { RecentUpdates } from "../components/RecentUpdates";
-import { Footer } from "../components/Footer";
+import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
+import { RecentUpdates } from "@/components/RecentUpdates";
+import { Footer } from "@/components/Footer";
 import { FilterProvider } from "@/lib/filter-context";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {

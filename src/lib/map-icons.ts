@@ -3,7 +3,7 @@
  * Theme-aware: provides default, colorblind-safe, and high-contrast palettes.
  * Every color-coded element also has a shape/icon/text label for accessibility.
  */
-import type { NeedCategory, NeedUrgency, CheckInStatus } from "./types";
+import type { NeedCategory, NeedUrgency, CheckInStatus } from "@/lib/types";
 import type { ThemeName } from "./theme-context";
 
 // ── Category → config per theme ──────────────────────────────

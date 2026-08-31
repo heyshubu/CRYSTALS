@@ -44,9 +44,9 @@ export function RecentUpdates() {
             </div>
             <span className="text-xs text-gray-500 font-medium">1 hour ago</span>
           </div>
-          <h3 className="font-bold text-gray-900 mb-2">Volunteers Needed: Debris Clearing</h3>
+          <h3 className="font-bold text-gray-900 mb-2">Responders Needed: Debris Clearing</h3>
           <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-            Seeking 50+ able-bodied volunteers to assist with clearing access roads in the...
+            Seeking 50+ able-bodied responders to assist with clearing access roads in the...
           </p>
           <div className="flex gap-2">
             <span className="inline-flex items-center px-2 py-1 rounded bg-[#c57199] text-white text-xs font-medium">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FormLayout } from "@/frontend/layouts/FormLayout";
+import { FormLayout } from "@/components/layouts/FormLayout";
 import { CheckCircle2, Target, Send, Lock, MapPin, Loader2, AlertCircle } from "lucide-react";
 
 export default function CheckInPage() {
