@@ -4,21 +4,8 @@ import { useState } from "react";
 import { Utensils, Droplet, Home, BriefcaseMedical, TriangleAlert, Check } from "lucide-react";
 
 export function Sidebar() {
-  const [urgencies, setUrgencies] = useState({
-    high: true,
-    medium: true,
-    low: false,
-  });
-
-  const [resources, setResources] = useState({
-    food: true,
-    water: false,
-    shelter: true,
-    medical: false,
-  });
-
-  const toggleUrgency = (key: keyof typeof urgencies) => setUrgencies(p => ({ ...p, [key]: !p[key] }));
-  const toggleResource = (key: keyof typeof resources) => setResources(p => ({ ...p, [key]: !p[key] }));
+  const [urgency, setUrgency] = useState<"high" | "medium" | "low">("high");
+  const [resource, setResource] = useState<"food" | "water" | "shelter" | "medical" | null>(null);
 
   return (
     <aside className="w-80 flex flex-col gap-6">
@@ -28,31 +15,25 @@ export function Sidebar() {
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">Urgency Level</h3>
           <div className="flex flex-col gap-3">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${urgencies.high ? 'bg-yellow-400' : 'bg-gray-100 border border-gray-300 group-hover:border-yellow-400'}`}>
-                {urgencies.high && <Check className="w-3.5 h-3.5 text-white" />}
+            <label className="flex items-center gap-3 cursor-pointer group" onClick={() => setUrgency('high')}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${urgency === 'high' ? 'bg-yellow-400' : 'bg-gray-100 border border-gray-300 group-hover:border-yellow-400'}`}>
+                {urgency === 'high' && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
-              <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
               <span className="text-sm font-medium text-gray-800">High Priority</span>
-              <input type="checkbox" className="hidden" checked={urgencies.high} onChange={() => toggleUrgency('high')} />
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${urgencies.medium ? 'bg-[#0072B2]' : 'bg-gray-100 border border-gray-300 group-hover:border-[#0072B2]'}`}>
-                {urgencies.medium && <Check className="w-3.5 h-3.5 text-white" />}
+            <label className="flex items-center gap-3 cursor-pointer group" onClick={() => setUrgency('medium')}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${urgency === 'medium' ? 'bg-[#0072B2]' : 'bg-gray-100 border border-gray-300 group-hover:border-[#0072B2]'}`}>
+                {urgency === 'medium' && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
-              <span className="w-3 h-3 rounded-full bg-[#0072B2]"></span>
               <span className="text-sm font-medium text-gray-800">Medium Priority</span>
-              <input type="checkbox" className="hidden" checked={urgencies.medium} onChange={() => toggleUrgency('medium')} />
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${urgencies.low ? 'bg-gray-500' : 'bg-white border border-gray-300 group-hover:border-gray-500'}`}>
-                {urgencies.low && <Check className="w-3.5 h-3.5 text-white" />}
+            <label className="flex items-center gap-3 cursor-pointer group" onClick={() => setUrgency('low')}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${urgency === 'low' ? 'bg-gray-500' : 'bg-white border border-gray-300 group-hover:border-gray-500'}`}>
+                {urgency === 'low' && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
-              <span className="w-3 h-3 rounded-full bg-gray-500"></span>
               <span className="text-sm font-medium text-gray-800">Low Priority</span>
-              <input type="checkbox" className="hidden" checked={urgencies.low} onChange={() => toggleUrgency('low')} />
             </label>
           </div>
         </div>
@@ -61,9 +42,9 @@ export function Sidebar() {
           <h3 className="text-sm font-semibold text-gray-700 mb-4">Resource Type</h3>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => toggleResource('food')}
+              onClick={() => setResource(resource === 'food' ? null : 'food')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resources.food 
+                resource === 'food' 
                   ? 'bg-[#c57199] text-white border-[#c57199]' 
                   : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
               }`}
@@ -71,9 +52,9 @@ export function Sidebar() {
               <Utensils className="w-4 h-4" /> Food
             </button>
             <button
-              onClick={() => toggleResource('water')}
+              onClick={() => setResource(resource === 'water' ? null : 'water')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resources.water 
+                resource === 'water' 
                   ? 'bg-[#c57199] text-white border-[#c57199]' 
                   : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
               }`}
@@ -81,9 +62,9 @@ export function Sidebar() {
               <Droplet className="w-4 h-4" /> Water
             </button>
             <button
-              onClick={() => toggleResource('shelter')}
+              onClick={() => setResource(resource === 'shelter' ? null : 'shelter')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resources.shelter 
+                resource === 'shelter' 
                   ? 'bg-[#c57199] text-white border-[#c57199]' 
                   : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
               }`}
@@ -91,9 +72,9 @@ export function Sidebar() {
               <Home className="w-4 h-4" /> Shelter
             </button>
             <button
-              onClick={() => toggleResource('medical')}
+              onClick={() => setResource(resource === 'medical' ? null : 'medical')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                resources.medical 
+                resource === 'medical' 
                   ? 'bg-[#c57199] text-white border-[#c57199]' 
                   : 'bg-white text-gray-700 border-gray-300 hover:border-[#c57199]'
               }`}

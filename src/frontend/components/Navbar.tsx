@@ -1,8 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Asterisk } from "lucide-react";
 
 export function Navbar() {
+  const pathname = usePathname();
+
   return (
     <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-50">
       <div className="flex items-center gap-2">
@@ -17,10 +22,16 @@ export function Navbar() {
       </div>
 
       <div className="hidden md:flex items-center gap-8 font-medium text-sm text-gray-600">
-        <Link href="/" className="text-[#0072B2] border-b-2 border-[#0072B2] pb-1">
+        <Link 
+          href="/" 
+          className={`${pathname === '/' ? 'text-[#0072B2] border-b-2 border-[#0072B2]' : 'hover:text-[#0072B2]'} transition-colors pb-1`}
+        >
           Relief Map
         </Link>
-        <Link href="/check-in" className="hover:text-[#0072B2] transition-colors pb-1">
+        <Link 
+          href="/check-in" 
+          className={`${pathname === '/check-in' ? 'text-[#0072B2] border-b-2 border-[#0072B2]' : 'hover:text-[#0072B2]'} transition-colors pb-1`}
+        >
           I am safe
         </Link>
         <Link href="#" className="hover:text-[#0072B2] transition-colors pb-1">
