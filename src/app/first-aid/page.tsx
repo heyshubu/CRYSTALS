@@ -8,7 +8,7 @@ import {
   AlertTriangle,
   WifiOff,
 } from "lucide-react";
-import { FIRST_AID_GUIDES } from "@/lib/first-aid-data";
+import { FIRST_AID_GUIDES } from "@/frontend/first-aid-data";
 
 export default function FirstAidPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);

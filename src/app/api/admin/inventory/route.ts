@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import pool from "@/backend/db";
 
 /** GET /api/admin/inventory?shelterId=xxx */
 export async function GET(req: NextRequest) {

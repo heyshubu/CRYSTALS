@@ -19,11 +19,11 @@ import {
   Copy,
   AlertCircle,
 } from "lucide-react";
-import { useSession } from "@/lib/hooks/use-session";
+import { useSession } from "@/frontend/use-session";
 
-import { useTheme } from "@/lib/theme-context";
-import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/lib/map-icons";
-import { UrgencyBadge, AvailabilityIndicator } from "@/components/UrgencyBadge";
+import { useTheme } from "@/frontend/theme-context";
+import { CATEGORY_CONFIG, URGENCY_CONFIG, getCategoryColor, getUrgencyColor } from "@/frontend/map-icons";
+import { UrgencyBadge, AvailabilityIndicator } from "@/frontend/UrgencyBadge";
 import type {
   Need,
   Responder,
@@ -31,7 +31,7 @@ import type {
   ShelterInventoryItem,
   NeedCategory,
   NeedUrgency,
-} from "@/lib/types";
+} from "@/shared/types";
 
 const URGENCY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 };
 const SKILLS: NeedCategory[] = ["food", "water", "medical", "shelter", "transport"];

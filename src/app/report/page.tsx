@@ -11,10 +11,10 @@ import {
   Sparkles,
   Stethoscope,
 } from "lucide-react";
-import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/lib/nepal-districts";
-import { useTheme } from "@/lib/theme-context";
-import { URGENCY_CONFIG, getUrgencyColor } from "@/lib/map-icons";
-import type { NeedCategory, NeedUrgency } from "@/lib/types";
+import { UNIQUE_DISTRICTS, DISTRICT_COORDS } from "@/frontend/nepal-districts";
+import { useTheme } from "@/frontend/theme-context";
+import { URGENCY_CONFIG, getUrgencyColor } from "@/frontend/map-icons";
+import type { NeedCategory, NeedUrgency } from "@/shared/types";
 
 const CATEGORIES: { value: NeedCategory; label: string }[] = [
   { value: "food", label: "🍽️ Food" },
