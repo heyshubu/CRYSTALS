@@ -72,6 +72,7 @@ const CATEGORY_ICONS: Record<string, { emoji: string; bg: string; shape: "circle
   shelter:   { emoji: "🏠", bg: "#fced47", shape: "circle" },
   transport: { emoji: "🚗", bg: "#6b7280", shape: "square" },
   safe:      { emoji: "✅", bg: "#22c55e", shape: "circle" },
+  help:      { emoji: "🚨", bg: "#ef4444", shape: "circle" },
 };
 
 const URGENCY_BORDER: Record<string, string> = {
@@ -165,10 +166,10 @@ export default function MapContent() {
           <Marker
             key={c.id}
             position={[c.approx_lat, c.approx_lng]}
-            icon={getMarkerIcon("safe")}
+            icon={getMarkerIcon(c.status === "safe" ? "safe" : "help")}
             eventHandlers={{ click: () => setSelectedPin({ type: "check_in", data: c }) }}
           >
-            <Popup>✅ {c.name || "Anonymous"} — {c.status === "safe" ? "Safe" : "Needs Help"}</Popup>
+            <Popup>{c.status === "safe" ? "✅ Safe" : "🚨 Needs Help"} — {c.name || "Anonymous"}</Popup>
           </Marker>
         ))}
 

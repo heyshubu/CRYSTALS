@@ -6,10 +6,15 @@ import { CheckCircle2, Asterisk, Target, Send, Lock, MapPin, Loader2, AlertCircl
 
 export default function CheckInPage() {
   const [status, setStatus] = useState<"safe" | "help">("safe");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [district, setDistrict] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function handleGps() {
     if (!navigator.geolocation) {
@@ -38,9 +43,38 @@ export default function CheckInPage() {
     );
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+
+    if (!coords) {
+      setError("Please use GPS to capture your location.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/check-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          phone: phone.trim() || undefined,
+          status: status === "safe" ? "safe" : "need_help",
+          lat: coords.lat,
+          lng: coords.lng,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Submission failed.");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (submitted) {
@@ -61,6 +95,9 @@ export default function CheckInPage() {
               onClick={() => {
                 setSubmitted(false);
                 setStatus("safe");
+                setName("");
+                setPhone("");
+                setDistrict("");
                 setGpsStatus("idle");
                 setCoords(null);
               }}
@@ -127,6 +164,8 @@ export default function CheckInPage() {
               <label className="block text-sm font-bold text-gray-900 mb-2">Name (optional)</label>
               <input
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent transition-shadow placeholder:text-gray-400"
               />
@@ -137,6 +176,8 @@ export default function CheckInPage() {
               <label className="block text-sm font-bold text-gray-900 mb-2">Phone (optional)</label>
               <input
                 type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your phone number"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent transition-shadow placeholder:text-gray-400"
               />
@@ -182,7 +223,11 @@ export default function CheckInPage() {
               </div>
 
               <div className="relative">
-                <select className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none">
+                <select
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0072B2] focus:border-transparent bg-white text-gray-700 appearance-none"
+                >
                   <option value="">Select district...</option>
                   <option value="kathmandu">Kathmandu</option>
                   <option value="lalitpur">Lalitpur</option>
@@ -198,14 +243,26 @@ export default function CheckInPage() {
               </div>
             </div>
 
+            {/* Error */}
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
+              disabled={submitting}
               style={{ backgroundColor: '#0072B2' }}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-lg text-white font-bold text-lg transition-opacity hover:opacity-90"
+              className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-lg text-white font-bold text-lg transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit Check-In
-              <Send className="w-5 h-5" />
+              {submitting ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Submitting...</>
+              ) : (
+                <><Send className="w-5 h-5" /> Submit Check-In</>
+              )}
             </button>
           </form>
         </div>
