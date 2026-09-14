@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/hooks/use-session";
 import { useTheme, THEMES, type ThemeName } from "@/lib/theme-context";
 import { useFont } from "@/lib/font-context";
+import { useLanguage } from "@/lib/language-context";
+import { LOCALES } from "@/lib/i18n";
 import {
   Map,
   ShieldCheck,
@@ -23,27 +25,29 @@ import {
   Menu,
   X,
   ChevronDown,
+  Languages,
+  Check,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const publicNavItems = [
-  { href: "/", label: "Map", icon: Map },
-  { href: "/safe", label: "I'm Safe", icon: ShieldCheck },
-  { href: "/report", label: "Report", icon: AlertTriangle },
-  { href: "/shelters", label: "Shelters", icon: Building2 },
-  { href: "/first-aid", label: "First Aid", icon: HeartPulse },
+  { href: "/", labelKey: "nav.map", icon: Map },
+  { href: "/safe", labelKey: "nav.safe", icon: ShieldCheck },
+  { href: "/report", labelKey: "nav.report", icon: AlertTriangle },
+  { href: "/shelters", labelKey: "nav.shelters", icon: Building2 },
+  { href: "/first-aid", labelKey: "nav.firstAid", icon: HeartPulse },
 ];
 
 const responderNavItems = [
-  { href: "/responder", label: "Dashboard", icon: Home },
-  { href: "/shelters", label: "Shelters", icon: Building2 },
+  { href: "/responder", labelKey: "nav.dashboard", icon: Home },
+  { href: "/shelters", labelKey: "nav.shelters", icon: Building2 },
 ];
 
 const superadminNavItems = [
-  { href: "/superadmin", label: "Dashboard", icon: Home },
-  { href: "/admin", label: "Admin", icon: Shield },
-  { href: "/shelters", label: "Shelters", icon: Building2 },
-  { href: "/first-aid", label: "First Aid", icon: HeartPulse },
+  { href: "/superadmin", labelKey: "nav.dashboard", icon: Home },
+  { href: "/admin", labelKey: "nav.admin", icon: Shield },
+  { href: "/shelters", labelKey: "nav.shelters", icon: Building2 },
+  { href: "/first-aid", labelKey: "nav.firstAid", icon: HeartPulse },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -51,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { session, mounted, logout } = useSession();
   const { theme, setTheme } = useTheme();
   const { font, setFont } = useFont();
+  const { locale, setLocale, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const themeRef = useRef<HTMLDivElement>(null);
@@ -79,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
       {/* ── Top Navbar ─────────────────────────────── */}
-      <nav className="bg-white border-b sticky top-0 z-50" style={{ borderColor: "var(--color-border)" }}>
+      <nav className="bg-white border-b sticky top-0 z-[1500]" style={{ borderColor: "var(--color-border)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14">
             {/* Left: Logo + Title */}
@@ -88,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Image src="/Logo.jpeg" alt="Logo" fill className="object-contain" />
               </div>
               <span className="font-bold text-sm hidden sm:block" style={{ color: "var(--color-text)" }}>
-                {isSuperadmin ? "Coordinator" : isResponder ? "Responder" : "Sanyukta"}
+                {isSuperadmin ? t("app.coordinator") : isResponder ? t("app.responder") : t("app.name")}
               </span>
             </Link>
 
@@ -107,7 +112,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     }}
                   >
                     <item.icon className="w-3.5 h-3.5" />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
@@ -138,43 +143,66 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Theme</span>
+                  <span className="hidden sm:inline">{t("menu.colorVision")}</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {themeOpen && (
                   <div
-                    className="absolute right-0 top-full mt-1 w-72 rounded-xl shadow-xl py-1 z-50"
+                    className="absolute right-0 top-full mt-1 w-72 rounded-xl shadow-xl py-1 z-[1600]"
                     style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}
                   >
                     <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-muted)" }}>
-                      Color Vision
+                      {t("menu.colorVision")}
                     </p>
-                    {THEMES.map((t) => (
+                    {THEMES.map((th) => (
                       <button
-                        key={t.value}
-                        onClick={() => { setTheme(t.value); setThemeOpen(false); }}
+                        key={th.value}
+                        onClick={() => { setTheme(th.value); setThemeOpen(false); }}
                         className="w-full text-left px-3 py-2 text-xs flex items-center gap-3 transition"
                         style={{
-                          backgroundColor: theme === t.value ? "var(--color-primary-light)" : "transparent",
-                          color: theme === t.value ? "var(--color-primary)" : "var(--color-text)",
+                          backgroundColor: theme === th.value ? "var(--color-primary-light)" : "transparent",
+                          color: theme === th.value ? "var(--color-primary)" : "var(--color-text)",
                         }}
                       >
                         <div className="flex gap-0.5">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme === t.value ? "var(--color-primary)" : "var(--color-border)" }} />
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme === th.value ? "var(--color-primary)" : "var(--color-border)" }} />
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--color-danger)" }} />
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--color-success)" }} />
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--color-warning)" }} />
                         </div>
                         <div className="flex-1">
-                          <span className="block text-xs font-medium">{t.label}</span>
-                          <span className="block text-[10px]" style={{ color: "var(--color-text-muted)" }}>{t.description}</span>
+                          <span className="block text-xs font-medium">{t(`theme.${th.value}`)}</span>
+                          <span className="block text-[10px]" style={{ color: "var(--color-text-muted)" }}>{t(`theme.${th.value}Desc`)}</span>
                         </div>
-                        {theme === t.value && <span style={{ color: "var(--color-primary)" }}>✓</span>}
+                        {theme === th.value && <span style={{ color: "var(--color-primary)" }}>✓</span>}
                       </button>
                     ))}
+                    {/* Language selector */}
                     <div className="border-t my-1" style={{ borderColor: "var(--color-border)" }} />
                     <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-muted)" }}>
-                      Font
+                      {t("menu.language")}
+                    </p>
+                    {LOCALES.map((l) => (
+                      <button
+                        key={l.value}
+                        onClick={() => { setLocale(l.value); setThemeOpen(false); }}
+                        className="w-full text-left px-3 py-2 text-xs flex items-center gap-3 transition"
+                        style={{
+                          backgroundColor: locale === l.value ? "var(--color-primary-light)" : "transparent",
+                          color: locale === l.value ? "var(--color-primary)" : "var(--color-text)",
+                        }}
+                      >
+                        <Languages className="w-4 h-4" />
+                        <div className="flex-1">
+                          <span className="block text-xs font-medium">{l.nativeLabel}</span>
+                        </div>
+                        {locale === l.value && <Check className="w-3.5 h-3.5" style={{ color: "var(--color-primary)" }} />}
+                      </button>
+                    ))}
+
+                    <div className="border-t my-1" style={{ borderColor: "var(--color-border)" }} />
+                    <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-muted)" }}>
+                      {t("menu.font")}
                     </p>
                     <button
                       onClick={() => setFont(font === "dyslexia-friendly" ? "default" : "dyslexia-friendly")}
@@ -186,14 +214,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     >
                       <Type className="w-4 h-4" />
                       <div className="flex-1">
-                        <span className="block text-xs font-medium">Dyslexia-Friendly Font</span>
-                        <span className="block text-[10px]" style={{ color: "var(--color-text-muted)" }}>OpenDyslexic with wider spacing</span>
+                        <span className="block text-xs font-medium">{t("menu.dyslexiaFont")}</span>
+                        <span className="block text-[10px]" style={{ color: "var(--color-text-muted)" }}>{t("menu.dyslexiaDesc")}</span>
                       </div>
                       <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
                         backgroundColor: font === "dyslexia-friendly" ? "var(--color-purple)" : "var(--color-border)",
                         color: font === "dyslexia-friendly" ? "white" : "var(--color-text-muted)",
                       }}>
-                        {font === "dyslexia-friendly" ? "ON" : "OFF"}
+                        {font === "dyslexia-friendly" ? t("menu.on") : t("menu.off")}
                       </span>
                     </button>
                   </div>
@@ -208,7 +236,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   style={{ backgroundColor: "var(--color-primary)" }}
                 >
                   <LogIn className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sign In</span>
+                  <span className="hidden sm:inline">{t("nav.signIn")}</span>
                 </Link>
               )}
 
@@ -223,14 +251,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       {isSuperadmin ? "C" : "R"}
                     </div>
                     <span className="text-xs font-medium" style={{ color: "var(--color-primary)" }}>
-                      {isSuperadmin ? "Coordinator" : session?.responder?.name || "Responder"}
+                      {isSuperadmin ? t("app.coordinator") : session?.responder?.name || t("app.responder")}
                     </span>
                   </div>
                   <button
                     onClick={logout}
                     className="p-1.5 rounded-lg transition"
                     style={{ color: "var(--color-text-muted)" }}
-                    title="Logout"
+                    title={t("nav.logout")}
                   >
                     <LogOut className="w-4 h-4" />
                   </button>
@@ -267,7 +295,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     }}
                   >
                     <item.icon className="w-4 h-4" />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
@@ -281,7 +309,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     style={{ color: "var(--color-primary)" }}
                   >
                     <LogIn className="w-4 h-4" />
-                    Sign In
+                    {t("nav.signIn")}
                   </Link>
                 </>
               )}
@@ -295,7 +323,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Bottom Nav (mobile, public only) ──── */}
       {isPublic && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t md:hidden safe-area-bottom" style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
+        <nav className="fixed bottom-0 left-0 right-0 z-[1500] border-t md:hidden safe-area-bottom" style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
           <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
             {publicNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
@@ -307,7 +335,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   style={{ color: isActive ? "var(--color-primary)" : "var(--color-text-muted)" }}
                 >
                   <item.icon className="w-5 h-5" />
-                  <span style={{ fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
+                  <span style={{ fontWeight: isActive ? 600 : 400 }}>{t(item.labelKey)}</span>
                 </Link>
               );
             })}
@@ -317,7 +345,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               style={{ color: "var(--color-text-muted)" }}
             >
               <LogIn className="w-5 h-5" />
-              <span>Sign In</span>
+              <span>{t("nav.signIn")}</span>
             </Link>
           </div>
         </nav>

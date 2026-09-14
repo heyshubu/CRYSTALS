@@ -2,31 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { AlertTriangle, X, ChevronDown, ChevronUp, Bell } from "lucide-react";
+import { useLanguage } from "@/lib/language-context";
 
 interface Alert {
   id: string;
   type: "flood" | "earthquake" | "storm" | "general";
-  title: string;
-  message: string;
+  titleKey: string;
+  messageKey: string;
   severity: "high" | "medium" | "low";
   created_at: string;
 }
 
-// Predefined alerts — can be updated by superadmin or from DB in future
+// Predefined alerts — can be updated by superadmin or from DB in future.
+// Titles/messages are translation keys resolved per active locale.
 const DEFAULT_ALERTS: Alert[] = [
   {
     id: "1",
     type: "flood",
-    title: "⚠️ Flood Warning — Gorkha Region",
-    message: "Heavy rainfall expected in Gorkha and surrounding districts over the next 48 hours. Relief routes through Trishuli may be affected. Stay alert and move to higher ground if near river banks.",
+    titleKey: "alert.floodTitle",
+    messageKey: "alert.floodMsg",
     severity: "high",
     created_at: new Date().toISOString(),
   },
   {
     id: "2",
     type: "earthquake",
-    title: "🔵 Aftershock Advisory — Sindhupalchok",
-    message: "Minor aftershocks (3.2-4.1 magnitude) recorded in the past 24 hours. Check structural integrity of buildings before re-entering. Report any damage through the Report Need page.",
+    titleKey: "alert.quakeTitle",
+    messageKey: "alert.quakeMsg",
     severity: "medium",
     created_at: new Date().toISOString(),
   },
@@ -46,6 +48,7 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export function EmergencyAlert() {
+  const { t } = useLanguage();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState(true);
@@ -90,11 +93,11 @@ export function EmergencyAlert() {
           <span className="text-sm">{TYPE_ICONS[activeAlerts[0]?.type] || "📢"}</span>
           <Bell className="w-3.5 h-3.5 animate-pulse" style={{ color: colors.text }} />
           <span className="text-xs font-semibold" style={{ color: colors.text }}>
-            {activeAlerts.length} Active Alert{activeAlerts.length !== 1 ? "s" : ""}
+            {activeAlerts.length} {activeAlerts.length !== 1 ? t("alert.activePlural") : t("alert.active")}
           </span>
           {highestSeverity === "high" && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#dc2626", color: "white" }}>
-              URGENT
+              {t("alert.urgent")}
             </span>
           )}
         </div>
@@ -118,8 +121,8 @@ export function EmergencyAlert() {
             >
               <span className="text-base mt-0.5">{TYPE_ICONS[alert.type]}</span>
               <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-bold" style={{ color: colors.text }}>{alert.title}</h4>
-                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: "#4b5563" }}>{alert.message}</p>
+                <h4 className="text-xs font-bold" style={{ color: colors.text }}>{t(alert.titleKey)}</h4>
+                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: "#4b5563" }}>{t(alert.messageKey)}</p>
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); dismiss(alert.id); }}

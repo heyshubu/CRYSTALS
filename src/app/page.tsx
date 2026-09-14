@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Phone, AlertTriangle, ShieldCheck } from "lucide-react";
 import { EmergencyAlert } from "@/components/EmergencyAlert";
+import { useLanguage } from "@/lib/language-context";
 
 const MapContent = dynamic(() => import("@/components/MapContent"), {
   ssr: false,
@@ -15,6 +16,8 @@ const MapContent = dynamic(() => import("@/components/MapContent"), {
 });
 
 export default function HomePage() {
+  const { t } = useLanguage();
+
   return (
     <div className="relative">
       {/* Emergency hotline floating button */}
@@ -22,7 +25,7 @@ export default function HomePage() {
         href="tel:100"
         className="fixed bottom-24 right-4 z-40 md:bottom-8 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-colors animate-pulse"
         style={{ backgroundColor: "var(--color-danger)", color: "white" }}
-        title="Emergency Hotline: 100"
+        title={t("map.hotline")}
       >
         <Phone className="w-6 h-6" />
       </a>
@@ -66,8 +69,8 @@ export default function HomePage() {
             <ShieldCheck className="w-5 h-5" style={{ color: "var(--color-success)" }} />
           </div>
           <div>
-            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>I&apos;m Safe</h3>
-            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>Check in and let others know your status</p>
+            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>{t("map.safeTitle")}</h3>
+            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>{t("map.safeDesc")}</p>
           </div>
         </Link>
 
@@ -80,8 +83,8 @@ export default function HomePage() {
             <AlertTriangle className="w-5 h-5" style={{ color: "var(--color-danger)" }} />
           </div>
           <div>
-            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Report Need</h3>
-            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>Report food, water, medical, or shelter needs</p>
+            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>{t("map.reportTitle")}</h3>
+            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>{t("map.reportDesc")}</p>
           </div>
         </Link>
 
@@ -94,8 +97,8 @@ export default function HomePage() {
             <span className="text-lg">🏠</span>
           </div>
           <div>
-            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>Find Shelters</h3>
-            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>View shelter locations and occupancy</p>
+            <h3 className="text-sm font-bold" style={{ color: "var(--color-text)" }}>{t("map.sheltersTitle")}</h3>
+            <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>{t("map.sheltersDesc")}</p>
           </div>
         </Link>
       </div>
