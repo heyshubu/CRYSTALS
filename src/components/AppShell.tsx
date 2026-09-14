@@ -143,7 +143,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{t("menu.colorVision")}</span>
+                  <span className="hidden sm:inline">{t("menu.theme")}</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {themeOpen && (
@@ -152,7 +152,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     style={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)" }}
                   >
                     <p className="px-3 py-1.5 text-[10px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-muted)" }}>
-                      {t("menu.colorVision")}
+                      {t("menu.theme")}
                     </p>
                     {THEMES.map((th) => (
                       <button

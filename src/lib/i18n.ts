@@ -29,7 +29,7 @@ export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
     "nav.admin": "Admin",
 
     // Dropdown sections
-    "menu.colorVision": "Color Vision",
+    "menu.theme": "Theme",
     "menu.language": "Language",
     "menu.font": "Font",
     "menu.dyslexiaFont": "Dyslexia-Friendly Font",
@@ -88,7 +88,7 @@ export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
     "nav.admin": "प्रशासक",
 
     // Dropdown sections
-    "menu.colorVision": "रङ दृष्टि",
+    "menu.theme": "थीम",
     "menu.language": "भाषा",
     "menu.font": "फन्ट",
     "menu.dyslexiaFont": "डिस्लेक्सिया-मैत्री फन्ट",

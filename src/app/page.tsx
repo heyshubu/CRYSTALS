@@ -30,26 +30,6 @@ export default function HomePage() {
         <Phone className="w-6 h-6" />
       </a>
 
-      {/* Quick action buttons */}
-      <div className="fixed bottom-24 left-4 z-40 md:bottom-8 flex flex-col gap-2">
-        <Link
-          href="/safe"
-          className="w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-colors"
-          style={{ backgroundColor: "var(--color-success)", color: "white" }}
-          title="I'm Safe"
-        >
-          <ShieldCheck className="w-5 h-5" />
-        </Link>
-        <Link
-          href="/report"
-          className="w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-colors"
-          style={{ backgroundColor: "var(--color-orange)", color: "white" }}
-          title="Report Need"
-        >
-          <AlertTriangle className="w-5 h-5" />
-        </Link>
-      </div>
-
       {/* Map */}
       <div className="h-[55vh] sm:h-[65vh] w-full">
         <MapContent />
